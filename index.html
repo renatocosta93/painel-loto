@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Lotofacil</title>
-    <!-- Biblioteca HTML2Canvas para gerar a imagem do bilhete -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -43,20 +42,17 @@
         
         h2 { margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
         
-        /* Volante */
         .volante { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
         .dezena { background: #e0e0e0; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; font-weight: bold; color: #555; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
         .dezena:hover { background: #d0d0d0; }
         .dezena.selected { background: var(--primary); color: white; transform: scale(1.05); box-shadow: 0 2px 5px rgba(147, 0, 137, 0.4); }
         
-        /* Estatísticas */
         .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
         .stat-label { font-weight: 600; }
         .stat-value { font-weight: bold; padding: 4px 10px; border-radius: 20px; background: #eee; }
         .status-ok { background: var(--success); color: white; }
         .status-bad { background: var(--danger); color: white; }
         
-        /* Badges */
         .badge-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; }
         .bg-hot { background-color: var(--danger); }
@@ -65,7 +61,6 @@
         .bg-cycle { background-color: var(--primary); }
         .bg-drawn { background-color: #28a745; font-size: 14px; padding: 6px 10px;}
 
-        /* Botões */
         .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; font-size: 14px; text-align: center; }
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: #7a0072; }
@@ -82,12 +77,10 @@
         .latest-draw-container { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;}
         .latest-draw-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;}
 
-        /* Multi Gerador */
         .multi-gen { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
         .multi-gen input { padding: 10px; width: 80px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
         textarea { width: 100%; height: 150px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: monospace; font-size: 16px; resize: vertical; margin-top: 10px; }
         
-        /* Ajustes para Celular (Mobile) */
         @media (max-width: 600px) {
             .multi-gen { flex-direction: column; align-items: stretch; }
             .multi-gen input, .multi-gen button { width: 100%; margin-bottom: 5px; }
@@ -96,50 +89,12 @@
             .dezena { width: 40px; height: 40px; font-size: 15px; }
         }
 
-        /* Nota do Bilhete */
-        .grade-panel {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            border: 2px dashed #ccc;
-        }
-
-        .bolao-results {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-            border: 1px solid #ccc;
-        }
-        
-        .bolao-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-        }
+        .grade-panel { background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px dashed #ccc; }
+        .bolao-results { background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; border: 1px solid #ccc; }
+        .bolao-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
         .bolao-item:last-child { border-bottom: none; }
 
-        /* Container escondido para gerar a imagem */
-        #export-canvas-container {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 400px;
-            color: #333;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border: 2px solid var(--primary);
-        }
+        #export-canvas-container { position: absolute; top: -9999px; left: -9999px; background: white; padding: 20px; border-radius: 10px; width: 400px; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border: 2px solid var(--primary); }
         .export-title { text-align: center; color: var(--primary); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
         .export-game { margin-bottom: 10px; padding: 10px; background: #f4f7f6; border-radius: 5px; display: flex; flex-direction: column; }
         .export-nums { font-weight: bold; font-size: 1.1rem; letter-spacing: 2px; color: #444; margin-bottom: 5px;}
@@ -151,16 +106,16 @@
 
     <div class="header">
         <h1>Painel Lotofacil</h1>
-        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Sincronizando com a base de dados...</p>
+        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Sincronizando informações ao vivo...</p>
         <div class="clock-container" id="real-time-clock">Carregando relógio...</div>
     </div>
 
     <div class="container">
         
-        <!-- Bloco de Status da API e Último Sorteio -->
+        <!-- Bloco de Status da API -->
         <div class="panel panel-full" id="api-panel">
             <div id="api-status" class="api-status">
-                Tentando conexão segura com a API de Loterias...
+                Tentando conexão múltipla com as loterias (Anti-Bloqueio)...
             </div>
             <div id="last-update-time" class="update-info"></div>
 
@@ -256,7 +211,7 @@
 
         <!-- Bloco Gerador em Massa e Bolão -->
         <div class="panel panel-full">
-            <h2>3. Gerador e Avaliador de Bolão (Múltiplos Jogos)</h2>
+            <h2>3. Gerador e Avaliador de Bolão</h2>
             <p style="margin-bottom: 15px; font-size: 14px;">Gere múltiplos bilhetes dentro dos padrões matemáticos, ou vá montando seus jogos no Item 1 e clicando em <strong>"Adicionar ao Bolão"</strong> para ir acumulando eles aqui embaixo.</p>
             
             <div class="multi-gen">
@@ -280,12 +235,12 @@
         <!-- Bloco de Informações -->
         <div class="panel panel-full" style="text-align: justify; font-size: 15px; line-height: 1.6; color: #444;">
             <h2 style="font-size: 1.1rem; border-bottom: none; margin-bottom: 10px; color: var(--primary);">Como este painel escolhe e avalia os números?</h2>
-            <p>Os sorteios da loteria são aleatórios, mas a matemática nos mostra que existem <strong>padrões que se repetem com muita frequência</strong>. Este painel não escolhe números "no escuro". O gerador funciona como um filtro super inteligente que avalia milhares de combinações em um segundo e só deixa passar para você os jogos que têm a maior chance de ocorrer historicamente. Para um jogo ganhar uma <strong>Nota 100%</strong>, ele deve respeitar as seguintes regras:</p>
+            <p>Os sorteios da loteria são aleatórios, mas a matemática nos mostra que existem <strong>padrões que se repetem com muita frequência</strong>. Este painel não escolhe números "no escuro". O gerador funciona como um filtro super inteligente que avalia milhares de combinações em um segundo e só deixa passar para você os jogos que têm a maior chance de ocorrer historicamente.</p>
             <ul style="margin-left: 20px; margin-bottom: 20px; margin-top: 10px;">
                 <li><strong>Metade a Metade:</strong> Um equilíbrio perfeito entre números Pares e Ímpares (geralmente 7 ou 8 de cada).</li>
                 <li><strong>A Moldura:</strong> Mantém a quantidade exata de números que ficam na borda do volante (9 a 10) e os que ficam no centro.</li>
                 <li><strong>Soma Controlada:</strong> A soma de todos os 15 números escolhidos precisa ficar dentro da média que mais sai na loteria (entre 180 e 220).</li>
-                <li><strong>Filtro de Repetidas:</strong> Analisa o último sorteio que acabou de acontecer e repete propositalmente entre 8 e 10 dezenas, pois é isso que acontece em quase todos os sorteios da história.</li>
+                <li><strong>Filtro de Repetidas:</strong> Analisa o último sorteio que acabou de acontecer e repete propositalmente entre 8 e 10 dezenas.</li>
                 <li><strong>Evita fileiras grandes:</strong> Trava sequências muito longas (como 1, 2, 3, 4, 5, 6, 7 juntos), que são eventos extremamente raros.</li>
             </ul>
         </div>
@@ -306,7 +261,6 @@
         let ultimoSorteio = [];
         let dadosCarregados = false;
 
-        // Relógio
         function atualizarRelogio() {
             const agora = new Date();
             const data = agora.toLocaleDateString('pt-BR');
@@ -316,7 +270,6 @@
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
 
-        // Inicializa Volante
         const volanteDiv = document.getElementById('volante');
         for (let i = 1; i <= 25; i++) {
             const btn = document.createElement('button');
@@ -352,27 +305,18 @@
 
         function adicionarAoBolao() {
             if (selecionadas.length !== 15) {
-                alert('Atenção: Você precisa selecionar 15 dezenas no volante para adicionar ao bolão!');
+                alert('Atenção: Selecione 15 dezenas no volante primeiro!');
                 return;
             }
             const jogoFormatado = selecionadas.map(n => n < 10 ? '0' + n : n).join(' ');
             const textArea = document.getElementById('txt-jogos');
-            
             const linhas = textArea.value.trim().split('\n');
-            if (linhas.includes(jogoFormatado)) {
-                alert('Este jogo já foi adicionado ao bolão na lista abaixo!');
-                return;
-            }
+            if (linhas.includes(jogoFormatado)) return alert('Este jogo já foi adicionado ao bolão!');
 
-            if (textArea.value.trim() === "") {
-                textArea.value = jogoFormatado;
-            } else {
-                textArea.value += '\n' + jogoFormatado;
-            }
-            
+            textArea.value += (textArea.value.trim() === "" ? "" : '\n') + jogoFormatado;
             avaliarBolaoHTML();
             limpar();
-            alert('Jogo adicionado com sucesso! Confira na seção "Avaliação do Bolão" no Item 3.');
+            alert('Jogo adicionado com sucesso ao bolão!');
         }
 
         function calcularNota(jogo) {
@@ -387,10 +331,7 @@
                 else { seqAtual = 1; }
             }
 
-            let repetidas = 0;
-            if (ultimoSorteio.length > 0) {
-                repetidas = jogo.filter(n => ultimoSorteio.includes(n)).length;
-            }
+            let repetidas = ultimoSorteio.length > 0 ? jogo.filter(n => ultimoSorteio.includes(n)).length : 0;
 
             const isImpOk = (impares === 7 || impares === 8);
             const isMolOk = (moldura >= 9 && moldura <= 10);
@@ -400,26 +341,16 @@
             const isRepOk = (repetidas >= 8 && repetidas <= 10);
 
             let totalCriterios = (ultimoSorteio.length > 0) ? 6 : 5;
-            let acertos = 0;
-            if (isImpOk) acertos++;
-            if (isMolOk) acertos++;
-            if (isPriOk) acertos++;
-            if (isSeqOk) acertos++;
-            if (isSomaOk) acertos++;
-            if (ultimoSorteio.length > 0 && isRepOk) acertos++;
+            let acertos = [isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk];
+            if(ultimoSorteio.length > 0) acertos.push(isRepOk);
+            
+            let numAcertos = acertos.filter(Boolean).length;
+            let percentual = Math.round((numAcertos / totalCriterios) * 100);
+            
+            let cor = percentual === 100 ? 'var(--success)' : (percentual >= 66 ? '#fd7e14' : 'var(--danger)');
+            let msg = percentual === 100 ? 'Excelente' : (percentual >= 66 ? 'Bom Jogo' : 'Arriscado');
 
-            let percentual = Math.round((acertos / totalCriterios) * 100);
-            let cor = ''; let msg = '';
-
-            if (percentual === 100) { cor = 'var(--success)'; msg = 'Excelente'; }
-            else if (percentual >= 66) { cor = '#fd7e14'; msg = 'Bom Jogo'; }
-            else { cor = 'var(--danger)'; msg = 'Arriscado'; }
-
-            return { 
-                impares, moldura, primos, soma, maxSeq, repetidas, 
-                isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk,
-                percentual, cor, msg
-            };
+            return { impares, moldura, primos, soma, maxSeq, repetidas, isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk, percentual, cor, msg };
         }
 
         function atualizarEstatisticas() {
@@ -434,12 +365,10 @@
                 return;
             }
 
-            const impares = selecionadas.filter(n => n % 2 !== 0).length;
-            const pares = selecionadas.length - impares;
-            
+            const aval = calcularNota(selecionadas);
+            const pares = selecionadas.length - aval.impares;
+
             if (selecionadas.length === 15) {
-                const aval = calcularNota(selecionadas);
-                
                 updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk);
                 updateBadge('stat-moldura', `${aval.moldura} / ${15 - aval.moldura}`, aval.isMolOk);
                 updateBadge('stat-primos', aval.primos, aval.isPriOk);
@@ -450,33 +379,16 @@
                 document.getElementById('stat-nota').innerText = `${aval.percentual}% / 100%`;
                 document.getElementById('stat-nota').style.color = aval.cor;
                 document.getElementById('grade-panel').style.borderColor = aval.cor;
-                
-                let desc = aval.percentual === 100 ? 'Jogo 100% dentro dos padrões matemáticos.' : 
-                           aval.percentual >= 66 ? 'Bom jogo, mas tem padrões fora da média.' : 
-                           'Jogo Arriscado! Foge da maioria dos padrões históricos.';
-                document.getElementById('stat-nota-msg').innerText = desc;
+                document.getElementById('stat-nota-msg').innerText = aval.percentual === 100 ? 'Jogo 100% nos padrões.' : (aval.percentual >= 66 ? 'Bom jogo, mas tem padrões fora da média.' : 'Jogo Arriscado! Fora dos padrões.');
                 document.getElementById('stat-nota-msg').style.color = aval.cor;
-
             } else {
-                const moldura = selecionadas.filter(n => MOLDURA.includes(n)).length;
-                const centro = selecionadas.length - moldura;
-                const primos = selecionadas.filter(n => PRIMOS.includes(n)).length;
-                const soma = selecionadas.reduce((a, b) => a + b, 0);
-                
-                let maxSeq = 1; let seqAtual = 1;
-                for(let i=1; i<selecionadas.length; i++) {
-                    if(selecionadas[i] === selecionadas[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; }
-                    else { seqAtual = 1; }
-                }
-                let repetidas = ultimoSorteio.length > 0 ? selecionadas.filter(n => ultimoSorteio.includes(n)).length : 0;
-
-                updateBadge('stat-impares', `${impares} / ${pares}`, (impares === 7 || impares === 8));
-                updateBadge('stat-moldura', `${moldura} / ${centro}`, (moldura >= 9 && moldura <= 10));
-                updateBadge('stat-primos', primos, (primos >= 4 && primos <= 6));
-                updateBadge('stat-seq', maxSeq, (maxSeq <= 5));
-                document.getElementById('stat-soma').innerText = soma;
+                updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk);
+                updateBadge('stat-moldura', `${aval.moldura} / ${selecionadas.length - aval.moldura}`, aval.isMolOk);
+                updateBadge('stat-primos', aval.primos, aval.isPriOk);
+                updateBadge('stat-seq', aval.maxSeq, aval.isSeqOk);
+                document.getElementById('stat-soma').innerText = aval.soma;
                 document.getElementById('stat-soma').className = 'stat-value';
-                if (ultimoSorteio.length > 0) updateBadge('stat-rep', repetidas, (repetidas >= 8 && repetidas <= 10));
+                if (ultimoSorteio.length > 0) updateBadge('stat-rep', aval.repetidas, aval.isRepOk);
 
                 document.getElementById('stat-nota').innerText = '--';
                 document.getElementById('stat-nota').style.color = '#6c757d';
@@ -511,7 +423,6 @@
             const qtd = parseInt(document.getElementById('qtd-jogos').value) || 1;
             let textArea = document.getElementById('txt-jogos');
             let resultados = [];
-            
             for(let i=0; i<qtd; i++) {
                 let tentativa = []; let valido = false;
                 while (!valido) {
@@ -538,9 +449,7 @@
             linhas.forEach(linha => {
                 const nums = linha.trim().split(/\s+/).map(Number).filter(n => n >= 1 && n <= 25 && !isNaN(n));
                 const unicos = [...new Set(nums)].sort((a,b)=>a-b);
-                if (unicos.length === 15) {
-                    jogosValidos.push(unicos);
-                }
+                if (unicos.length === 15) jogosValidos.push(unicos);
             });
             return jogosValidos;
         }
@@ -548,37 +457,27 @@
         function avaliarBolaoHTML() {
             const jogos = lerJogosDaTextArea();
             const resultsDiv = document.getElementById('bolao-results');
-            
             if (jogos.length === 0) {
                 resultsDiv.style.display = 'block';
-                resultsDiv.innerHTML = '<span style="color: var(--danger); font-weight:bold;">Nenhum jogo válido de 15 dezenas foi encontrado na caixa de texto.</span>';
+                resultsDiv.innerHTML = '<span style="color: var(--danger); font-weight:bold;">Nenhum jogo válido de 15 dezenas encontrado.</span>';
                 return;
             }
-
             let somaNotas = 0;
             let htmlOut = '<h3 style="color:var(--primary); margin-bottom:10px; font-size:1.1rem; border-bottom: 1px solid #ccc; padding-bottom:5px;">📊 Avaliação do Bolão (' + jogos.length + ' jogos)</h3>';
-            
             jogos.forEach((jogo, idx) => {
                 const aval = calcularNota(jogo);
                 somaNotas += aval.percentual;
-                htmlOut += `<div class="bolao-item">
-                    <span><strong>J${idx+1}:</strong> ${jogo.map(n=>n<10?'0'+n:n).join(' ')}</span>
-                    <span style="color: ${aval.cor}; font-weight: bold;">Nota: ${aval.percentual}%</span>
-                </div>`;
+                htmlOut += `<div class="bolao-item"><span><strong>J${idx+1}:</strong> ${jogo.map(n=>n<10?'0'+n:n).join(' ')}</span><span style="color: ${aval.cor}; font-weight: bold;">Nota: ${aval.percentual}%</span></div>`;
             });
-
             const media = Math.round(somaNotas / jogos.length);
             let corMedia = media === 100 ? 'var(--success)' : media >= 66 ? '#fd7e14' : 'var(--danger)';
-            htmlOut += `<div style="margin-top: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; background: #fff; padding: 10px; border-radius: 5px; border: 2px dashed ${corMedia};">
-                Nota Geral do Bolão: <span style="color: ${corMedia}">${media}%</span>
-            </div>`;
-            
+            htmlOut += `<div style="margin-top: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; background: #fff; padding: 10px; border-radius: 5px; border: 2px dashed ${corMedia};">Nota Geral: <span style="color: ${corMedia}">${media}%</span></div>`;
             resultsDiv.innerHTML = htmlOut;
             resultsDiv.style.display = 'block';
         }
 
         function enviarWhatsAppUnicoTexto() {
-            if (selecionadas.length !== 15) return alert('Atenção: Selecione 15 dezenas ou clique em "Gerar 1 Jogo" primeiro!');
+            if (selecionadas.length !== 15) return alert('Selecione 15 dezenas!');
             const aval = calcularNota(selecionadas);
             const jogoFormatado = selecionadas.map(n => n < 10 ? '0' + n : n).join(' ');
             const msg = `🍀 *Meu jogo da Lotofácil*\n\nDezenas: ${jogoFormatado}\n📊 *Nota do Bilhete:* ${aval.percentual}% (${aval.msg})\n\n_Gerado pelo Painel Inteligente_`;
@@ -587,19 +486,16 @@
 
         function enviarWhatsAppMassaTexto() {
             const jogos = lerJogosDaTextArea();
-            if (jogos.length === 0) return alert('Gere ou cole jogos válidos na caixa primeiro!');
-            
+            if (jogos.length === 0) return alert('Sem jogos válidos!');
             let msg = `🍀 *Meu Bolão da Lotofácil (${jogos.length} Jogos)*\n\n`;
             let somaNotas = 0;
-            
             jogos.forEach((jogo, i) => {
                 const aval = calcularNota(jogo);
                 somaNotas += aval.percentual;
                 msg += `*Jogo ${i+1}:* ${jogo.map(n=>n<10?'0'+n:n).join(' ')} - (Nota: ${aval.percentual}%)\n`;
             });
-            
             const media = Math.round(somaNotas / jogos.length);
-            msg += `\n📊 *Nota Geral do Bolão:* ${media}% / 100%\n\n_Gerado pelo Painel Inteligente_`;
+            msg += `\n📊 *Nota Geral:* ${media}% / 100%\n\n_Gerado pelo Painel Inteligente_`;
             window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
         }
 
@@ -607,63 +503,37 @@
             const container = document.getElementById('export-canvas-container');
             const listDiv = document.getElementById('export-games-list');
             listDiv.innerHTML = ''; 
-
             let somaNotas = 0;
-
             jogosObjArray.forEach((jogo, idx) => {
                 const aval = calcularNota(jogo);
                 somaNotas += aval.percentual;
-                
                 const div = document.createElement('div');
                 div.className = 'export-game';
-                div.innerHTML = `
-                    <div style="font-size:0.9rem; color:#666;">Jogo ${idx+1}</div>
-                    <div class="export-nums">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div>
-                    <div class="export-nota" style="color: ${aval.cor};">Nota do Bilhete: ${aval.percentual}% (${aval.msg})</div>
-                `;
+                div.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${idx+1}</div><div class="export-nums">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div><div class="export-nota" style="color: ${aval.cor};">Nota do Bilhete: ${aval.percentual}% (${aval.msg})</div>`;
                 listDiv.appendChild(div);
             });
-
             if (isBolao && jogosObjArray.length > 1) {
                 const media = Math.round(somaNotas / jogosObjArray.length);
                 let corMedia = media === 100 ? 'var(--success)' : media >= 66 ? '#fd7e14' : 'var(--danger)';
                 const divMedia = document.createElement('div');
-                divMedia.style.marginTop = '15px';
-                divMedia.style.textAlign = 'center';
-                divMedia.style.fontSize = '1.1rem';
-                divMedia.style.fontWeight = 'bold';
+                divMedia.style.marginTop = '15px'; divMedia.style.textAlign = 'center'; divMedia.style.fontSize = '1.1rem'; divMedia.style.fontWeight = 'bold';
                 divMedia.innerHTML = `Nota Geral do Bolão (${jogosObjArray.length} Jogos): <br><span style="color:${corMedia}">${media}%</span>`;
                 listDiv.appendChild(divMedia);
             }
-
             container.style.top = '0'; container.style.left = '0'; container.style.zIndex = '-1';
-            
             try {
                 const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' });
                 container.style.top = '-9999px'; container.style.left = '-9999px'; 
-                
                 canvas.toBlob(async (blob) => {
                     const file = new File([blob], 'jogos_lotofacil.png', { type: 'image/png' });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: 'Meus Jogos - Lotofácil',
-                                text: 'Confira os jogos que acabei de montar no painel!'
-                            });
-                        } catch (err) {
-                            console.log("Compartilhamento cancelado ou falhou", err);
-                        }
+                        try { await navigator.share({ files: [file], title: 'Meus Jogos - Lotofácil', text: 'Confira os jogos!' }); } 
+                        catch (err) { console.log(err); }
                     } else {
                         const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'jogos_lotofacil.png';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                        alert("A imagem do(s) bilhete(s) foi baixada no seu dispositivo! Agora basta anexá-la na sua conversa do WhatsApp.");
+                        const a = document.createElement('a'); a.href = url; a.download = 'jogos_lotofacil.png';
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
+                        alert("A imagem foi baixada. Anexe-a na sua conversa do WhatsApp.");
                     }
                 });
             } catch (e) {
@@ -673,37 +543,40 @@
         }
 
         function enviarWhatsAppUnicoImagem() {
-            if (selecionadas.length !== 15) return alert('Atenção: Selecione 15 dezenas primeiro!');
+            if (selecionadas.length !== 15) return alert('Selecione 15 dezenas!');
             gerarECompartilharCanvas([selecionadas], false);
         }
 
         function enviarWhatsAppMassaImagem() {
             const jogos = lerJogosDaTextArea();
-            if (jogos.length === 0) return alert('Gere ou cole jogos válidos na caixa primeiro!');
+            if (jogos.length === 0) return alert('Sem jogos na caixa!');
             gerarECompartilharCanvas(jogos, true);
         }
 
         // ==========================================
-        // NOVA ARQUITETURA DE API (CORS PROXY E FALLBACKS MÚLTIPLOS)
+        // SISTEMA DE CONEXÃO ANTI-BLOQUEIO
         // ==========================================
-        async function fetchLotoData() {
-            const urls = [
-                'https://loterias-api.brchallenges.com/api/lotofacil', 
-                'https://brasilapi.com.br/api/loterias/v1/lotofacil'
+        async function buscarDadosComFallback() {
+            const rotas = [
+                'https://loterias-api.brchallenges.com/api/lotofacil',
+                'https://brasilapi.com.br/api/loterias/v1/lotofacil',
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://brasilapi.com.br/api/loterias/v1/lotofacil')
             ];
 
-            for (let url of urls) {
+            let ultimoErro = "";
+
+            for (let url of rotas) {
                 try {
                     let bypass = new Date().getTime();
-                    let response = await fetch(`${url}?_nocache=${bypass}`);
+                    let response = await fetch(`${url}?_nocache=${bypass}`, { cache: "no-store" });
                     if (response.ok) {
                         return await response.json();
                     }
-                } catch (e) {
-                    console.warn("Falha na API: " + url);
+                } catch(e) {
+                    ultimoErro = e.message || "Erro desconhecido de rede ou SSL";
                 }
             }
-            throw new Error("Nenhuma API respondeu.");
+            throw new Error(ultimoErro);
         }
 
         async function inicializarDados() {
@@ -712,27 +585,21 @@
             const nextDrawInfo = document.getElementById('header-next-draw-info');
             
             try {
-                statusDiv.innerHTML = 'Estabelecendo conexão segura com as loterias...';
-                
-                // Busca dados da API mais estável (brchallenges ou brasilapi)
-                let dataAPI = await fetchLotoData();
-                
-                // O formato da brchallenges e da brasilapi pode variar um pouco. Normalizamos aqui:
-                let cAtual = dataAPI.concurso || dataAPI.numero;
-                let dezenasAtual = (dataAPI.dezenas || dataAPI.listaDezenas).map(Number);
-                let dataAtual = dataAPI.data || dataAPI.dataApuracao;
+                let dadosIniciais = await buscarDadosComFallback();
 
-                // Captura robusta do próximo concurso
+                let cAtual = dadosIniciais.concurso || dadosIniciais.numero;
+                let dezenasAtual = (dadosIniciais.dezenas || dadosIniciais.listaDezenas).map(Number);
+                let dataAtual = dadosIniciais.data || dadosIniciais.dataApuracao;
+
                 let proxConcurso = cAtual + 1;
-                if (dataAPI.proximo_concurso) proxConcurso = dataAPI.proximo_concurso;
-                else if (dataAPI.numeroConcursoProximo) proxConcurso = dataAPI.numeroConcursoProximo;
-                else if (dataAPI.proxConcurso) proxConcurso = dataAPI.proxConcurso;
+                if (dadosIniciais.proximo_concurso) proxConcurso = dadosIniciais.proximo_concurso;
+                else if (dadosIniciais.numeroConcursoProximo) proxConcurso = dadosIniciais.numeroConcursoProximo;
+                else if (dadosIniciais.proxConcurso) proxConcurso = dadosIniciais.proxConcurso;
 
-                // Captura robusta do prêmio
                 let premioEstimado = 0;
-                if (dataAPI.valor_estimado_proximo_concurso) premioEstimado = dataAPI.valor_estimado_proximo_concurso;
-                else if (dataAPI.valorEstimadoProximoConcurso) premioEstimado = dataAPI.valorEstimadoProximoConcurso;
-                else if (dataAPI.premio_estimado) premioEstimado = dataAPI.premio_estimado;
+                if (dadosIniciais.valor_estimado_proximo_concurso) premioEstimado = dadosIniciais.valor_estimado_proximo_concurso;
+                else if (dadosIniciais.valorEstimadoProximoConcurso) premioEstimado = dadosIniciais.valorEstimadoProximoConcurso;
+                else if (dadosIniciais.premio_estimado) premioEstimado = dadosIniciais.premio_estimado;
 
                 const premioFormatado = premioEstimado > 0 
                     ? premioEstimado.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) 
@@ -744,26 +611,22 @@
                 dadosCarregados = true;
                 
                 const dataAtualizacao = new Date();
-                updateTimeDiv.innerText = `🔄 Base de dados sincronizada em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
+                updateTimeDiv.innerText = `🔄 Sincronizado com sucesso em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
 
                 document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${cAtual} (${dataAtual || 'Data indisponível'})`;
                 renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
 
-                // Como as APIs gratuitas cortaram o histórico longo recentemente, o painel 
-                // permitirá o uso do gerador e da nota focando no último sorteio, 
-                // desativando visualmente os blocos de ciclo para não travar a experiência.
                 document.getElementById('historico-info').style.display = 'none';
 
-                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Dados Oficial!`;
+                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Loterias!`;
                 statusDiv.className = 'api-status loaded';
 
-                // Reprocessar a nota caso o usuário já tenha clicado antes da API carregar
                 if(selecionadas.length === 15) atualizarEstatisticas();
 
             } catch (err) {
-                statusDiv.innerHTML = '⚠️ Erro ao conectar. A base de dados externa pode estar fora do ar. O gerador funcionará parcialmente offline.';
+                statusDiv.innerHTML = `⚠️ O seu navegador ou a DATA do aparelho bloqueou a rede (${err}). O Gerador Offline continuará funcionando.`;
                 statusDiv.className = 'api-status error';
-                nextDrawInfo.innerText = "Não foi possível carregar as informações abertas no momento.";
+                nextDrawInfo.innerText = "Verifique a data (ano) do seu celular para liberar a conexão segura.";
             }
         }
 
