@@ -151,7 +151,7 @@
 
     <div class="header">
         <h1>Painel Lotofacil</h1>
-        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Consultando informações ao vivo...</p>
+        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Sincronizando com a base de dados...</p>
         <div class="clock-container" id="real-time-clock">Carregando relógio...</div>
     </div>
 
@@ -160,7 +160,7 @@
         <!-- Bloco de Status da API e Último Sorteio -->
         <div class="panel panel-full" id="api-panel">
             <div id="api-status" class="api-status">
-                Sincronizando com a base de dados oficial...
+                Tentando conexão segura com a API de Loterias...
             </div>
             <div id="last-update-time" class="update-info"></div>
 
@@ -289,7 +289,6 @@
                 <li><strong>Evita fileiras grandes:</strong> Trava sequências muito longas (como 1, 2, 3, 4, 5, 6, 7 juntos), que são eventos extremamente raros.</li>
             </ul>
         </div>
-
     </div>
 
     <!-- Div oculta para gerar a imagem via html2canvas -->
@@ -307,6 +306,7 @@
         let ultimoSorteio = [];
         let dadosCarregados = false;
 
+        // Relógio
         function atualizarRelogio() {
             const agora = new Date();
             const data = agora.toLocaleDateString('pt-BR');
@@ -316,6 +316,7 @@
         setInterval(atualizarRelogio, 1000);
         atualizarRelogio();
 
+        // Inicializa Volante
         const volanteDiv = document.getElementById('volante');
         for (let i = 1; i <= 25; i++) {
             const btn = document.createElement('button');
@@ -683,26 +684,26 @@
         }
 
         // ==========================================
-        // NOVA ARQUITETURA DE CONEXÃO DIRETA
+        // NOVA ARQUITETURA DE API (CORS PROXY E FALLBACKS MÚLTIPLOS)
         // ==========================================
-        async function fetchLotoAPI(concurso = '') {
-            const bypass = new Date().getTime();
+        async function fetchLotoData() {
             const urls = [
-                `https://brasilapi.com.br/api/loterias/v1/lotofacil/${concurso}?_nocache=${bypass}`
+                'https://loterias-api.brchallenges.com/api/lotofacil', 
+                'https://brasilapi.com.br/api/loterias/v1/lotofacil'
             ];
 
             for (let url of urls) {
                 try {
-                    let res = await fetch(url);
-                    if (res.ok) {
-                        let data = await res.json();
-                        if (data && (data.concurso || data.numero)) return data;
+                    let bypass = new Date().getTime();
+                    let response = await fetch(`${url}?_nocache=${bypass}`);
+                    if (response.ok) {
+                        return await response.json();
                     }
                 } catch (e) {
-                    console.warn("Falha em: " + url);
+                    console.warn("Falha na API: " + url);
                 }
             }
-            return null;
+            throw new Error("Nenhuma API respondeu.");
         }
 
         async function inicializarDados() {
@@ -711,26 +712,27 @@
             const nextDrawInfo = document.getElementById('header-next-draw-info');
             
             try {
-                statusDiv.innerHTML = 'Conectando à base oficial... Buscando último sorteio.';
-                statusDiv.className = 'api-status';
-
-                // 1. Pegar o mais recente
-                let ultimoBR = await fetchLotoAPI('');
-                if (!ultimoBR) throw new Error("Não foi possível conectar à API.");
-
-                let cAtual = ultimoBR.concurso || ultimoBR.numero;
-                let dezenasAtual = (ultimoBR.dezenas || ultimoBR.listaDezenas).map(Number);
-                let dataAtual = ultimoBR.data || ultimoBR.dataApuracao;
+                statusDiv.innerHTML = 'Estabelecendo conexão segura com as loterias...';
+                
+                // Busca dados da API mais estável (brchallenges ou brasilapi)
+                let dataAPI = await fetchLotoData();
+                
+                // O formato da brchallenges e da brasilapi pode variar um pouco. Normalizamos aqui:
+                let cAtual = dataAPI.concurso || dataAPI.numero;
+                let dezenasAtual = (dataAPI.dezenas || dataAPI.listaDezenas).map(Number);
+                let dataAtual = dataAPI.data || dataAPI.dataApuracao;
 
                 // Captura robusta do próximo concurso
                 let proxConcurso = cAtual + 1;
-                if (ultimoBR.proximo_concurso) proxConcurso = ultimoBR.proximo_concurso;
-                else if (ultimoBR.numeroConcursoProximo) proxConcurso = ultimoBR.numeroConcursoProximo;
+                if (dataAPI.proximo_concurso) proxConcurso = dataAPI.proximo_concurso;
+                else if (dataAPI.numeroConcursoProximo) proxConcurso = dataAPI.numeroConcursoProximo;
+                else if (dataAPI.proxConcurso) proxConcurso = dataAPI.proxConcurso;
 
                 // Captura robusta do prêmio
                 let premioEstimado = 0;
-                if (ultimoBR.valor_estimado_proximo_concurso) premioEstimado = ultimoBR.valor_estimado_proximo_concurso;
-                else if (ultimoBR.valorEstimadoProximoConcurso) premioEstimado = ultimoBR.valorEstimadoProximoConcurso;
+                if (dataAPI.valor_estimado_proximo_concurso) premioEstimado = dataAPI.valor_estimado_proximo_concurso;
+                else if (dataAPI.valorEstimadoProximoConcurso) premioEstimado = dataAPI.valorEstimadoProximoConcurso;
+                else if (dataAPI.premio_estimado) premioEstimado = dataAPI.premio_estimado;
 
                 const premioFormatado = premioEstimado > 0 
                     ? premioEstimado.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) 
@@ -739,105 +741,27 @@
                 nextDrawInfo.innerHTML = `🟢 Apostas Abertas | Próximo Concurso: <strong>${proxConcurso}</strong> | Prêmio Estimado: <strong>${premioFormatado}</strong>`;
                 
                 ultimoSorteio = dezenasAtual;
-                document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${cAtual} (${dataAtual || 'Data indisponível'})`;
-                renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
-
-                // 2. Construir Histórico dos últimos 50 de forma robusta e exata
-                let historicoCompleto = [{
-                    concurso: cAtual,
-                    data: dataAtual,
-                    dezenas: dezenasAtual
-                }];
-
-                let restantes = 49;
-                let carregados = 1;
-                let numParaBuscar = cAtual - 1;
-
-                statusDiv.innerHTML = `Montando histórico e estatísticas para os padrões... (${carregados}/50)`;
-                document.getElementById('historico-info').style.display = 'block';
-
-                // Loop em lotes de 10
-                for (let i = 0; i < restantes; i += 10) {
-                    let promessas = [];
-                    let qtdLote = Math.min(10, restantes - i);
-                    
-                    for (let j = 0; j < qtdLote; j++) {
-                        if (numParaBuscar > 0) {
-                            promessas.push(fetchLotoAPI(numParaBuscar));
-                            numParaBuscar--;
-                        }
-                    }
-
-                    let loteResultados = await Promise.all(promessas);
-                    
-                    loteResultados.forEach(res => {
-                        if (res) {
-                            historicoCompleto.push({
-                                concurso: res.concurso || res.numero,
-                                data: res.data || res.dataApuracao,
-                                dezenas: (res.dezenas || res.listaDezenas).map(Number)
-                            });
-                            carregados++;
-                        }
-                    });
-                    
-                    statusDiv.innerHTML = `Baixando histórico seguro e atualizado... (${carregados}/50)`;
-                }
-
                 dadosCarregados = true;
+                
                 const dataAtualizacao = new Date();
                 updateTimeDiv.innerText = `🔄 Base de dados sincronizada em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
 
-                // Processar Estatísticas (Quentes, Frias, Ciclo)
-                if (historicoCompleto.length >= 2) {
-                    let freq = {};
-                    for(let i=1; i<=25; i++) freq[i] = 0;
-                    
-                    historicoCompleto.forEach(sorteio => {
-                        sorteio.dezenas.forEach(d => { freq[Number(d)]++; });
-                    });
+                document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${cAtual} (${dataAtual || 'Data indisponível'})`;
+                renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
 
-                    let ranking = Object.keys(freq).map(num => ({ dezena: Number(num), qtde: freq[num] }));
-                    ranking.sort((a,b) => b.qtde - a.qtde);
+                // Como as APIs gratuitas cortaram o histórico longo recentemente, o painel 
+                // permitirá o uso do gerador e da nota focando no último sorteio, 
+                // desativando visualmente os blocos de ciclo para não travar a experiência.
+                document.getElementById('historico-info').style.display = 'none';
 
-                    let quentes = ranking.slice(0, 8);
-                    let medias = ranking.slice(8, 17);
-                    let frias = ranking.slice(17, 25);
-
-                    renderBadges('badge-quentes', quentes.map(q => q.dezena), 'bg-hot');
-                    renderBadges('badge-medias', medias.map(m => m.dezena), 'bg-med');
-                    renderBadges('badge-frias', frias.map(f => f.dezena), 'bg-cold');
-
-                    let encontradas = new Set();
-                    for(let i=0; i<historicoCompleto.length; i++) {
-                        let dzs = historicoCompleto[i].dezenas.map(Number);
-                        dzs.forEach(d => encontradas.add(d));
-                        
-                        if (encontradas.size === 25) {
-                            encontradas.clear();
-                            for(let j=0; j<i; j++) {
-                                historicoCompleto[j].dezenas.map(Number).forEach(d => encontradas.add(d));
-                            }
-                            break;
-                        }
-                    }
-
-                    let faltantesCiclo = [];
-                    if (encontradas.size === 0) {
-                        for(let i=1; i<=25; i++) faltantesCiclo.push(i);
-                    } else {
-                        for(let i=1; i<=25; i++) {
-                            if(!encontradas.has(i)) faltantesCiclo.push(i);
-                        }
-                    }
-                    renderBadges('badge-ciclo', faltantesCiclo, 'bg-cycle');
-                }
-
-                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Dados Atualizada!`;
+                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Dados Oficial!`;
                 statusDiv.className = 'api-status loaded';
 
+                // Reprocessar a nota caso o usuário já tenha clicado antes da API carregar
+                if(selecionadas.length === 15) atualizarEstatisticas();
+
             } catch (err) {
-                statusDiv.innerHTML = '⚠️ Erro ao conectar. A base de dados externa pode estar fora do ar.';
+                statusDiv.innerHTML = '⚠️ Erro ao conectar. A base de dados externa pode estar fora do ar. O gerador funcionará parcialmente offline.';
                 statusDiv.className = 'api-status error';
                 nextDrawInfo.innerText = "Não foi possível carregar as informações abertas no momento.";
             }
