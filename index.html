@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Lotofacil</title>
+    <!-- Biblioteca HTML2Canvas para gerar a imagem do bilhete -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #930089;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
+        
+        .header { 
+            text-align: center; margin-bottom: 20px; padding: 20px; 
+            background: var(--primary); color: white; 
+            border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            position: relative;
+        }
+        .clock-container {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.2);
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .panel { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex: 1 1 350px; }
+        .panel-full { flex: 1 1 100%; }
+        
+        h2 { margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
+        
+        /* Volante */
+        .volante { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+        .dezena { background: #e0e0e0; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; font-weight: bold; color: #555; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .dezena:hover { background: #d0d0d0; }
+        .dezena.selected { background: var(--primary); color: white; transform: scale(1.05); box-shadow: 0 2px 5px rgba(147, 0, 137, 0.4); }
+        
+        /* Estatísticas */
+        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .stat-label { font-weight: 600; }
+        .stat-value { font-weight: bold; padding: 4px 10px; border-radius: 20px; background: #eee; }
+        .status-ok { background: var(--success); color: white; }
+        .status-bad { background: var(--danger); color: white; }
+        
+        /* Badges */
+        .badge-list { display: flex; flex-wrap: wrap; gap: 5px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; }
+        .bg-hot { background-color: var(--danger); }
+        .bg-med { background-color: var(--warning); color: #333; }
+        .bg-cold { background-color: var(--info); }
+        .bg-cycle { background-color: var(--primary); }
+        .bg-drawn { background-color: #28a745; font-size: 14px; padding: 6px 10px;}
+
+        /* Botões */
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; font-size: 14px; text-align: center; }
+        .btn-primary { background: var(--primary); } .btn-primary:hover { background: #7a0072; }
+        .btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }
+        .btn-success { background: var(--success); } .btn-success:hover { background: #218838; }
+        .btn-info { background: var(--info); } .btn-info:hover { background: #138496; }
+        .btn-warning { background: var(--warning); color: #333; } .btn-warning:hover { background: #e0a800; }
+        
+        .api-status { background: #e2e3e5; color: #383d41; padding: 15px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; font-weight: bold; text-align: center; }
+        .api-status.loaded { background: #d4edda; color: #155724; }
+        .api-status.error { background: #f8d7da; color: #721c24; }
+        
+        .update-info { text-align: center; font-size: 12px; color: #666; margin-bottom: 20px; font-style: italic; }
+        .latest-draw-container { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;}
+        .latest-draw-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;}
+
+        /* Multi Gerador */
+        .multi-gen { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+        .multi-gen input { padding: 10px; width: 80px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
+        textarea { width: 100%; height: 150px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: monospace; font-size: 16px; resize: vertical; margin-top: 10px; }
+        
+        /* Ajustes para Celular (Mobile) */
+        @media (max-width: 600px) {
+            .multi-gen { flex-direction: column; align-items: stretch; }
+            .multi-gen input, .multi-gen button { width: 100%; margin-bottom: 5px; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; margin-bottom: 5px; }
+            .dezena { width: 40px; height: 40px; font-size: 15px; }
+        }
+
+        /* Nota do Bilhete */
+        .grade-panel {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 2px dashed #ccc;
+        }
+
+        .bolao-results {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border: 1px solid #ccc;
+        }
+        
+        .bolao-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        .bolao-item:last-child { border-bottom: none; }
+
+        /* Container escondido para gerar a imagem */
+        #export-canvas-container {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: 2px solid var(--primary);
+        }
+        .export-title { text-align: center; color: var(--primary); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
+        .export-game { margin-bottom: 10px; padding: 10px; background: #f4f7f6; border-radius: 5px; display: flex; flex-direction: column; }
+        .export-nums { font-weight: bold; font-size: 1.1rem; letter-spacing: 2px; color: #444; margin-bottom: 5px;}
+        .export-nota { font-size: 0.9rem; font-weight: bold; }
+        .export-footer { text-align: center; font-size: 0.8rem; color: #888; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Painel Lotofacil</h1>
+        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Consultando informações ao vivo...</p>
+        <div class="clock-container" id="real-time-clock">Carregando relógio...</div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Bloco de Status da API e Último Sorteio -->
+        <div class="panel panel-full" id="api-panel">
+            <div id="api-status" class="api-status">
+                Sincronizando com a base de dados oficial...
+            </div>
+            <div id="last-update-time" class="update-info"></div>
+
+            <div id="historico-info" style="display: none;">
+                <div class="latest-draw-container">
+                    <div class="latest-draw-title" id="latest-draw-title">Último Concurso: Carregando...</div>
+                    <div class="badge-list" id="latest-draw-numbers" style="justify-content: center;"></div>
+                </div>
+
+                <div class="stat-item">
+                    <span class="stat-label">Dezenas Quentes (Top 8):</span>
+                    <div class="badge-list" id="badge-quentes"></div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Dezenas Médias (9):</span>
+                    <div class="badge-list" id="badge-medias"></div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Dezenas Frias (Menos saem):</span>
+                    <div class="badge-list" id="badge-frias"></div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Dezenas Faltantes do Ciclo:</span>
+                    <div class="badge-list" id="badge-ciclo"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lado Esquerdo: Volante -->
+        <div class="panel">
+            <h2>1. Seletor e Validador (Bilhete Único)</h2>
+            <div class="volante" id="volante"></div>
+            
+            <div style="text-align: center; margin-bottom: 10px; font-weight: bold;">
+                <span id="contador">0</span> / 15 dezenas selecionadas
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="limpar()">Limpar</button>
+                <button class="btn btn-primary" onclick="gerarJogoIdeal()">Gerar 1 Jogo (Padrões Ideais)</button>
+            </div>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn btn-warning" onclick="adicionarAoBolao()">➕ Adicionar ao Bolão</button>
+            </div>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn btn-success" onclick="enviarWhatsAppUnicoTexto()">📱 Enviar Jogo (Texto)</button>
+                <button class="btn btn-info" onclick="enviarWhatsAppUnicoImagem()">🖼️ Enviar Jogo (Imagem)</button>
+            </div>
+        </div>
+
+        <!-- Lado Direito: Padrões e NOTA -->
+        <div class="panel">
+            <h2>2. Análise do Bilhete</h2>
+            
+            <div class="stat-item">
+                <span class="stat-label">Ímpares / Pares:</span>
+                <span id="stat-impares" class="stat-value">0 / 0</span>
+                <small>(Ideal: 8/7 ou 7/8)</small>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Moldura / Centro:</span>
+                <span id="stat-moldura" class="stat-value">0 / 0</span>
+                <small>(Ideal: 9/6 ou 10/5)</small>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Números Primos:</span>
+                <span id="stat-primos" class="stat-value">0</span>
+                <small>(Ideal: 4 a 6)</small>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Soma das Dezenas:</span>
+                <span id="stat-soma" class="stat-value">0</span>
+                <small>(Ideal: 180 a 220)</small>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Maior Sequência:</span>
+                <span id="stat-seq" class="stat-value">0</span>
+                <small>(Ideal: Máximo 5)</small>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Repetidas do Último:</span>
+                <span id="stat-rep" class="stat-value">-</span>
+                <small>(Ideal: 8 a 10)</small>
+            </div>
+
+            <!-- Nota Final do Bilhete -->
+            <div class="grade-panel" id="grade-panel">
+                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary); margin-bottom: 5px;">Avaliação Final do Jogo</span>
+                <span id="stat-nota" style="font-size: 2rem; font-weight: bold; color: #6c757d;">--</span>
+                <span id="stat-nota-msg" style="font-size: 0.95rem; font-weight: 600; margin-top: 5px; color: #555;">Selecione 15 dezenas para receber a nota.</span>
+            </div>
+        </div>
+
+        <!-- Bloco Gerador em Massa e Bolão -->
+        <div class="panel panel-full">
+            <h2>3. Gerador e Avaliador de Bolão (Múltiplos Jogos)</h2>
+            <p style="margin-bottom: 15px; font-size: 14px;">Gere múltiplos bilhetes dentro dos padrões matemáticos, ou vá montando seus jogos no Item 1 e clicando em <strong>"Adicionar ao Bolão"</strong> para ir acumulando eles aqui embaixo.</p>
+            
+            <div class="multi-gen">
+                <label>Qtd:</label>
+                <input type="number" id="qtd-jogos" value="5" min="1" max="100">
+                <button class="btn btn-primary" style="flex: 1;" onclick="gerarMultiplos()">Gerar Jogos Auto</button>
+                <button class="btn btn-secondary" style="flex: 1; background-color: #6c757d;" onclick="avaliarBolaoHTML()">📊 Avaliar Bolão</button>
+            </div>
+
+            <textarea id="txt-jogos" placeholder="Os jogos do seu bolão irão se acumular aqui..."></textarea>
+            
+            <!-- Resultados Visuais do Bolão -->
+            <div id="bolao-results" class="bolao-results"></div>
+
+            <div class="btn-group" style="margin-top: 15px;">
+                <button class="btn btn-success" onclick="enviarWhatsAppMassaTexto()">📱 Enviar Bolão (Texto)</button>
+                <button class="btn btn-info" onclick="enviarWhatsAppMassaImagem()">🖼️ Enviar Bolão (Imagem)</button>
+            </div>
+        </div>
+
+        <!-- Bloco de Informações -->
+        <div class="panel panel-full" style="text-align: justify; font-size: 15px; line-height: 1.6; color: #444;">
+            <h2 style="font-size: 1.1rem; border-bottom: none; margin-bottom: 10px; color: var(--primary);">Como este painel escolhe e avalia os números?</h2>
+            <p>Os sorteios da loteria são aleatórios, mas a matemática nos mostra que existem <strong>padrões que se repetem com muita frequência</strong>. Este painel não escolhe números "no escuro". O gerador funciona como um filtro super inteligente que avalia milhares de combinações em um segundo e só deixa passar para você os jogos que têm a maior chance de ocorrer historicamente. Para um jogo ganhar uma <strong>Nota 100%</strong>, ele deve respeitar as seguintes regras:</p>
+            <ul style="margin-left: 20px; margin-bottom: 20px; margin-top: 10px;">
+                <li><strong>Metade a Metade:</strong> Um equilíbrio perfeito entre números Pares e Ímpares (geralmente 7 ou 8 de cada).</li>
+                <li><strong>A Moldura:</strong> Mantém a quantidade exata de números que ficam na borda do volante (9 a 10) e os que ficam no centro.</li>
+                <li><strong>Soma Controlada:</strong> A soma de todos os 15 números escolhidos precisa ficar dentro da média que mais sai na loteria (entre 180 e 220).</li>
+                <li><strong>Filtro de Repetidas:</strong> Analisa o último sorteio que acabou de acontecer e repete propositalmente entre 8 e 10 dezenas, pois é isso que acontece em quase todos os sorteios da história.</li>
+                <li><strong>Evita fileiras grandes:</strong> Trava sequências muito longas (como 1, 2, 3, 4, 5, 6, 7 juntos), que são eventos extremamente raros.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Div oculta para gerar a imagem via html2canvas -->
+    <div id="export-canvas-container">
+        <div class="export-title">🍀 Lotofácil - Meus Jogos</div>
+        <div id="export-games-list"></div>
+        <div class="export-footer">Gerado pelo Painel Inteligente</div>
+    </div>
+
+    <script>
+        const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23];
+        const MOLDURA = [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25];
+        
+        let selecionadas = [];
+        let ultimoSorteio = [];
+        let dadosCarregados = false;
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            const data = agora.toLocaleDateString('pt-BR');
+            const hora = agora.toLocaleTimeString('pt-BR');
+            document.getElementById('real-time-clock').innerText = `📅 ${data} - ⏰ ${hora}`;
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        const volanteDiv = document.getElementById('volante');
+        for (let i = 1; i <= 25; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'dezena';
+            btn.innerText = (i < 10 ? '0' + i : i);
+            btn.onclick = () => toggleDezena(i, btn);
+            volanteDiv.appendChild(btn);
+        }
+
+        function toggleDezena(num, btn) {
+            const index = selecionadas.indexOf(num);
+            if (index > -1) {
+                selecionadas.splice(index, 1);
+                btn.classList.remove('selected');
+            } else {
+                if (selecionadas.length < 15) {
+                    selecionadas.push(num);
+                    btn.classList.add('selected');
+                } else {
+                    alert("Limite de 15 dezenas atingido!");
+                    return;
+                }
+            }
+            selecionadas.sort((a, b) => a - b);
+            atualizarEstatisticas();
+        }
+
+        function limpar() {
+            selecionadas = [];
+            document.querySelectorAll('.dezena').forEach(btn => btn.classList.remove('selected'));
+            atualizarEstatisticas();
+        }
+
+        function adicionarAoBolao() {
+            if (selecionadas.length !== 15) {
+                alert('Atenção: Você precisa selecionar 15 dezenas no volante para adicionar ao bolão!');
+                return;
+            }
+            const jogoFormatado = selecionadas.map(n => n < 10 ? '0' + n : n).join(' ');
+            const textArea = document.getElementById('txt-jogos');
+            
+            const linhas = textArea.value.trim().split('\n');
+            if (linhas.includes(jogoFormatado)) {
+                alert('Este jogo já foi adicionado ao bolão na lista abaixo!');
+                return;
+            }
+
+            if (textArea.value.trim() === "") {
+                textArea.value = jogoFormatado;
+            } else {
+                textArea.value += '\n' + jogoFormatado;
+            }
+            
+            avaliarBolaoHTML();
+            limpar();
+            alert('Jogo adicionado com sucesso! Confira na seção "Avaliação do Bolão" no Item 3.');
+        }
+
+        function calcularNota(jogo) {
+            const impares = jogo.filter(n => n % 2 !== 0).length;
+            const moldura = jogo.filter(n => MOLDURA.includes(n)).length;
+            const primos = jogo.filter(n => PRIMOS.includes(n)).length;
+            const soma = jogo.reduce((a, b) => a + b, 0);
+            
+            let maxSeq = 1; let seqAtual = 1;
+            for(let i=1; i<jogo.length; i++) {
+                if(jogo[i] === jogo[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; }
+                else { seqAtual = 1; }
+            }
+
+            let repetidas = 0;
+            if (ultimoSorteio.length > 0) {
+                repetidas = jogo.filter(n => ultimoSorteio.includes(n)).length;
+            }
+
+            const isImpOk = (impares === 7 || impares === 8);
+            const isMolOk = (moldura >= 9 && moldura <= 10);
+            const isPriOk = (primos >= 4 && primos <= 6);
+            const isSeqOk = (maxSeq <= 5);
+            const isSomaOk = (soma >= 180 && soma <= 220);
+            const isRepOk = (repetidas >= 8 && repetidas <= 10);
+
+            let totalCriterios = (ultimoSorteio.length > 0) ? 6 : 5;
+            let acertos = 0;
+            if (isImpOk) acertos++;
+            if (isMolOk) acertos++;
+            if (isPriOk) acertos++;
+            if (isSeqOk) acertos++;
+            if (isSomaOk) acertos++;
+            if (ultimoSorteio.length > 0 && isRepOk) acertos++;
+
+            let percentual = Math.round((acertos / totalCriterios) * 100);
+            let cor = ''; let msg = '';
+
+            if (percentual === 100) { cor = 'var(--success)'; msg = 'Excelente'; }
+            else if (percentual >= 66) { cor = '#fd7e14'; msg = 'Bom Jogo'; }
+            else { cor = 'var(--danger)'; msg = 'Arriscado'; }
+
+            return { 
+                impares, moldura, primos, soma, maxSeq, repetidas, 
+                isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk,
+                percentual, cor, msg
+            };
+        }
+
+        function atualizarEstatisticas() {
+            document.getElementById('contador').innerText = selecionadas.length;
+            if (selecionadas.length === 0) {
+                document.querySelectorAll('.stat-value').forEach(el => { el.innerText = '-'; el.className = 'stat-value'; });
+                document.getElementById('stat-nota').innerText = '--';
+                document.getElementById('stat-nota').style.color = '#6c757d';
+                document.getElementById('grade-panel').style.borderColor = '#ccc';
+                document.getElementById('stat-nota-msg').innerText = 'Selecione 15 dezenas para receber a nota.';
+                document.getElementById('stat-nota-msg').style.color = '#555';
+                return;
+            }
+
+            const impares = selecionadas.filter(n => n % 2 !== 0).length;
+            const pares = selecionadas.length - impares;
+            
+            if (selecionadas.length === 15) {
+                const aval = calcularNota(selecionadas);
+                
+                updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk);
+                updateBadge('stat-moldura', `${aval.moldura} / ${15 - aval.moldura}`, aval.isMolOk);
+                updateBadge('stat-primos', aval.primos, aval.isPriOk);
+                updateBadge('stat-seq', aval.maxSeq, aval.isSeqOk);
+                updateBadge('stat-soma', aval.soma, aval.isSomaOk);
+                if (ultimoSorteio.length > 0) updateBadge('stat-rep', aval.repetidas, aval.isRepOk);
+
+                document.getElementById('stat-nota').innerText = `${aval.percentual}% / 100%`;
+                document.getElementById('stat-nota').style.color = aval.cor;
+                document.getElementById('grade-panel').style.borderColor = aval.cor;
+                
+                let desc = aval.percentual === 100 ? 'Jogo 100% dentro dos padrões matemáticos.' : 
+                           aval.percentual >= 66 ? 'Bom jogo, mas tem padrões fora da média.' : 
+                           'Jogo Arriscado! Foge da maioria dos padrões históricos.';
+                document.getElementById('stat-nota-msg').innerText = desc;
+                document.getElementById('stat-nota-msg').style.color = aval.cor;
+
+            } else {
+                const moldura = selecionadas.filter(n => MOLDURA.includes(n)).length;
+                const centro = selecionadas.length - moldura;
+                const primos = selecionadas.filter(n => PRIMOS.includes(n)).length;
+                const soma = selecionadas.reduce((a, b) => a + b, 0);
+                
+                let maxSeq = 1; let seqAtual = 1;
+                for(let i=1; i<selecionadas.length; i++) {
+                    if(selecionadas[i] === selecionadas[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; }
+                    else { seqAtual = 1; }
+                }
+                let repetidas = ultimoSorteio.length > 0 ? selecionadas.filter(n => ultimoSorteio.includes(n)).length : 0;
+
+                updateBadge('stat-impares', `${impares} / ${pares}`, (impares === 7 || impares === 8));
+                updateBadge('stat-moldura', `${moldura} / ${centro}`, (moldura >= 9 && moldura <= 10));
+                updateBadge('stat-primos', primos, (primos >= 4 && primos <= 6));
+                updateBadge('stat-seq', maxSeq, (maxSeq <= 5));
+                document.getElementById('stat-soma').innerText = soma;
+                document.getElementById('stat-soma').className = 'stat-value';
+                if (ultimoSorteio.length > 0) updateBadge('stat-rep', repetidas, (repetidas >= 8 && repetidas <= 10));
+
+                document.getElementById('stat-nota').innerText = '--';
+                document.getElementById('stat-nota').style.color = '#6c757d';
+                document.getElementById('grade-panel').style.borderColor = '#ccc';
+                document.getElementById('stat-nota-msg').innerText = `Faltam ${15 - selecionadas.length} dezenas para avaliar.`;
+                document.getElementById('stat-nota-msg').style.color = '#555';
+            }
+        }
+
+        function updateBadge(id, text, isOk) {
+            const el = document.getElementById(id);
+            el.innerText = text; el.className = 'stat-value ' + (isOk ? 'status-ok' : 'status-bad');
+        }
+
+        function gerarJogoIdeal() {
+            limpar();
+            let tentativa = []; let valido = false;
+            while (!valido) {
+                tentativa = gerarAleatorios(15, 25);
+                valido = calcularNota(tentativa).percentual === 100;
+            }
+            const botoes = document.querySelectorAll('.dezena');
+            tentativa.forEach(num => {
+                selecionadas.push(num);
+                botoes[num - 1].classList.add('selected');
+            });
+            selecionadas.sort((a, b) => a - b);
+            atualizarEstatisticas();
+        }
+
+        function gerarMultiplos() {
+            const qtd = parseInt(document.getElementById('qtd-jogos').value) || 1;
+            let textArea = document.getElementById('txt-jogos');
+            let resultados = [];
+            
+            for(let i=0; i<qtd; i++) {
+                let tentativa = []; let valido = false;
+                while (!valido) {
+                    tentativa = gerarAleatorios(15, 25);
+                    valido = calcularNota(tentativa).percentual === 100;
+                }
+                resultados.push(tentativa.map(n => n < 10 ? '0'+n : n).join(' '));
+            }
+            textArea.value = resultados.join('\n');
+            avaliarBolaoHTML();
+        }
+
+        function gerarAleatorios(qtd, max) {
+            let nums = new Set();
+            while(nums.size < qtd) nums.add(Math.floor(Math.random() * max) + 1);
+            return Array.from(nums).sort((a, b) => a - b);
+        }
+
+        function lerJogosDaTextArea() {
+            const txt = document.getElementById('txt-jogos').value.trim();
+            if (!txt) return [];
+            const linhas = txt.split('\n');
+            const jogosValidos = [];
+            linhas.forEach(linha => {
+                const nums = linha.trim().split(/\s+/).map(Number).filter(n => n >= 1 && n <= 25 && !isNaN(n));
+                const unicos = [...new Set(nums)].sort((a,b)=>a-b);
+                if (unicos.length === 15) {
+                    jogosValidos.push(unicos);
+                }
+            });
+            return jogosValidos;
+        }
+
+        function avaliarBolaoHTML() {
+            const jogos = lerJogosDaTextArea();
+            const resultsDiv = document.getElementById('bolao-results');
+            
+            if (jogos.length === 0) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = '<span style="color: var(--danger); font-weight:bold;">Nenhum jogo válido de 15 dezenas foi encontrado na caixa de texto.</span>';
+                return;
+            }
+
+            let somaNotas = 0;
+            let htmlOut = '<h3 style="color:var(--primary); margin-bottom:10px; font-size:1.1rem; border-bottom: 1px solid #ccc; padding-bottom:5px;">📊 Avaliação do Bolão (' + jogos.length + ' jogos)</h3>';
+            
+            jogos.forEach((jogo, idx) => {
+                const aval = calcularNota(jogo);
+                somaNotas += aval.percentual;
+                htmlOut += `<div class="bolao-item">
+                    <span><strong>J${idx+1}:</strong> ${jogo.map(n=>n<10?'0'+n:n).join(' ')}</span>
+                    <span style="color: ${aval.cor}; font-weight: bold;">Nota: ${aval.percentual}%</span>
+                </div>`;
+            });
+
+            const media = Math.round(somaNotas / jogos.length);
+            let corMedia = media === 100 ? 'var(--success)' : media >= 66 ? '#fd7e14' : 'var(--danger)';
+            htmlOut += `<div style="margin-top: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; background: #fff; padding: 10px; border-radius: 5px; border: 2px dashed ${corMedia};">
+                Nota Geral do Bolão: <span style="color: ${corMedia}">${media}%</span>
+            </div>`;
+            
+            resultsDiv.innerHTML = htmlOut;
+            resultsDiv.style.display = 'block';
+        }
+
+        function enviarWhatsAppUnicoTexto() {
+            if (selecionadas.length !== 15) return alert('Atenção: Selecione 15 dezenas ou clique em "Gerar 1 Jogo" primeiro!');
+            const aval = calcularNota(selecionadas);
+            const jogoFormatado = selecionadas.map(n => n < 10 ? '0' + n : n).join(' ');
+            const msg = `🍀 *Meu jogo da Lotofácil*\n\nDezenas: ${jogoFormatado}\n📊 *Nota do Bilhete:* ${aval.percentual}% (${aval.msg})\n\n_Gerado pelo Painel Inteligente_`;
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+        }
+
+        function enviarWhatsAppMassaTexto() {
+            const jogos = lerJogosDaTextArea();
+            if (jogos.length === 0) return alert('Gere ou cole jogos válidos na caixa primeiro!');
+            
+            let msg = `🍀 *Meu Bolão da Lotofácil (${jogos.length} Jogos)*\n\n`;
+            let somaNotas = 0;
+            
+            jogos.forEach((jogo, i) => {
+                const aval = calcularNota(jogo);
+                somaNotas += aval.percentual;
+                msg += `*Jogo ${i+1}:* ${jogo.map(n=>n<10?'0'+n:n).join(' ')} - (Nota: ${aval.percentual}%)\n`;
+            });
+            
+            const media = Math.round(somaNotas / jogos.length);
+            msg += `\n📊 *Nota Geral do Bolão:* ${media}% / 100%\n\n_Gerado pelo Painel Inteligente_`;
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+        }
+
+        async function gerarECompartilharCanvas(jogosObjArray, isBolao) {
+            const container = document.getElementById('export-canvas-container');
+            const listDiv = document.getElementById('export-games-list');
+            listDiv.innerHTML = ''; 
+
+            let somaNotas = 0;
+
+            jogosObjArray.forEach((jogo, idx) => {
+                const aval = calcularNota(jogo);
+                somaNotas += aval.percentual;
+                
+                const div = document.createElement('div');
+                div.className = 'export-game';
+                div.innerHTML = `
+                    <div style="font-size:0.9rem; color:#666;">Jogo ${idx+1}</div>
+                    <div class="export-nums">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div>
+                    <div class="export-nota" style="color: ${aval.cor};">Nota do Bilhete: ${aval.percentual}% (${aval.msg})</div>
+                `;
+                listDiv.appendChild(div);
+            });
+
+            if (isBolao && jogosObjArray.length > 1) {
+                const media = Math.round(somaNotas / jogosObjArray.length);
+                let corMedia = media === 100 ? 'var(--success)' : media >= 66 ? '#fd7e14' : 'var(--danger)';
+                const divMedia = document.createElement('div');
+                divMedia.style.marginTop = '15px';
+                divMedia.style.textAlign = 'center';
+                divMedia.style.fontSize = '1.1rem';
+                divMedia.style.fontWeight = 'bold';
+                divMedia.innerHTML = `Nota Geral do Bolão (${jogosObjArray.length} Jogos): <br><span style="color:${corMedia}">${media}%</span>`;
+                listDiv.appendChild(divMedia);
+            }
+
+            container.style.top = '0'; container.style.left = '0'; container.style.zIndex = '-1';
+            
+            try {
+                const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' });
+                container.style.top = '-9999px'; container.style.left = '-9999px'; 
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'jogos_lotofacil.png', { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Meus Jogos - Lotofácil',
+                                text: 'Confira os jogos que acabei de montar no painel!'
+                            });
+                        } catch (err) {
+                            console.log("Compartilhamento cancelado ou falhou", err);
+                        }
+                    } else {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'jogos_lotofacil.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        alert("A imagem do(s) bilhete(s) foi baixada no seu dispositivo! Agora basta anexá-la na sua conversa do WhatsApp.");
+                    }
+                });
+            } catch (e) {
+                alert("Erro ao processar a imagem.");
+                container.style.top = '-9999px'; container.style.left = '-9999px';
+            }
+        }
+
+        function enviarWhatsAppUnicoImagem() {
+            if (selecionadas.length !== 15) return alert('Atenção: Selecione 15 dezenas primeiro!');
+            gerarECompartilharCanvas([selecionadas], false);
+        }
+
+        function enviarWhatsAppMassaImagem() {
+            const jogos = lerJogosDaTextArea();
+            if (jogos.length === 0) return alert('Gere ou cole jogos válidos na caixa primeiro!');
+            gerarECompartilharCanvas(jogos, true);
+        }
+
+        // ==========================================
+        // NOVA ARQUITETURA DE CONEXÃO DIRETA
+        // ==========================================
+        async function fetchLotoAPI(concurso = '') {
+            const bypass = new Date().getTime();
+            const urls = [
+                `https://brasilapi.com.br/api/loterias/v1/lotofacil/${concurso}?_nocache=${bypass}`
+            ];
+
+            for (let url of urls) {
+                try {
+                    let res = await fetch(url);
+                    if (res.ok) {
+                        let data = await res.json();
+                        if (data && (data.concurso || data.numero)) return data;
+                    }
+                } catch (e) {
+                    console.warn("Falha em: " + url);
+                }
+            }
+            return null;
+        }
+
+        async function inicializarDados() {
+            const statusDiv = document.getElementById('api-status');
+            const updateTimeDiv = document.getElementById('last-update-time');
+            const nextDrawInfo = document.getElementById('header-next-draw-info');
+            
+            try {
+                statusDiv.innerHTML = 'Conectando à base oficial... Buscando último sorteio.';
+                statusDiv.className = 'api-status';
+
+                // 1. Pegar o mais recente
+                let ultimoBR = await fetchLotoAPI('');
+                if (!ultimoBR) throw new Error("Não foi possível conectar à API.");
+
+                let cAtual = ultimoBR.concurso || ultimoBR.numero;
+                let dezenasAtual = (ultimoBR.dezenas || ultimoBR.listaDezenas).map(Number);
+                let dataAtual = ultimoBR.data || ultimoBR.dataApuracao;
+
+                // Captura robusta do próximo concurso
+                let proxConcurso = cAtual + 1;
+                if (ultimoBR.proximo_concurso) proxConcurso = ultimoBR.proximo_concurso;
+                else if (ultimoBR.numeroConcursoProximo) proxConcurso = ultimoBR.numeroConcursoProximo;
+
+                // Captura robusta do prêmio
+                let premioEstimado = 0;
+                if (ultimoBR.valor_estimado_proximo_concurso) premioEstimado = ultimoBR.valor_estimado_proximo_concurso;
+                else if (ultimoBR.valorEstimadoProximoConcurso) premioEstimado = ultimoBR.valorEstimadoProximoConcurso;
+
+                const premioFormatado = premioEstimado > 0 
+                    ? premioEstimado.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) 
+                    : 'Apurando valor...';
+                
+                nextDrawInfo.innerHTML = `🟢 Apostas Abertas | Próximo Concurso: <strong>${proxConcurso}</strong> | Prêmio Estimado: <strong>${premioFormatado}</strong>`;
+                
+                ultimoSorteio = dezenasAtual;
+                document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${cAtual} (${dataAtual || 'Data indisponível'})`;
+                renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
+
+                // 2. Construir Histórico dos últimos 50 de forma robusta e exata
+                let historicoCompleto = [{
+                    concurso: cAtual,
+                    data: dataAtual,
+                    dezenas: dezenasAtual
+                }];
+
+                let restantes = 49;
+                let carregados = 1;
+                let numParaBuscar = cAtual - 1;
+
+                statusDiv.innerHTML = `Montando histórico e estatísticas para os padrões... (${carregados}/50)`;
+                document.getElementById('historico-info').style.display = 'block';
+
+                // Loop em lotes de 10
+                for (let i = 0; i < restantes; i += 10) {
+                    let promessas = [];
+                    let qtdLote = Math.min(10, restantes - i);
+                    
+                    for (let j = 0; j < qtdLote; j++) {
+                        if (numParaBuscar > 0) {
+                            promessas.push(fetchLotoAPI(numParaBuscar));
+                            numParaBuscar--;
+                        }
+                    }
+
+                    let loteResultados = await Promise.all(promessas);
+                    
+                    loteResultados.forEach(res => {
+                        if (res) {
+                            historicoCompleto.push({
+                                concurso: res.concurso || res.numero,
+                                data: res.data || res.dataApuracao,
+                                dezenas: (res.dezenas || res.listaDezenas).map(Number)
+                            });
+                            carregados++;
+                        }
+                    });
+                    
+                    statusDiv.innerHTML = `Baixando histórico seguro e atualizado... (${carregados}/50)`;
+                }
+
+                dadosCarregados = true;
+                const dataAtualizacao = new Date();
+                updateTimeDiv.innerText = `🔄 Base de dados sincronizada em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
+
+                // Processar Estatísticas (Quentes, Frias, Ciclo)
+                if (historicoCompleto.length >= 2) {
+                    let freq = {};
+                    for(let i=1; i<=25; i++) freq[i] = 0;
+                    
+                    historicoCompleto.forEach(sorteio => {
+                        sorteio.dezenas.forEach(d => { freq[Number(d)]++; });
+                    });
+
+                    let ranking = Object.keys(freq).map(num => ({ dezena: Number(num), qtde: freq[num] }));
+                    ranking.sort((a,b) => b.qtde - a.qtde);
+
+                    let quentes = ranking.slice(0, 8);
+                    let medias = ranking.slice(8, 17);
+                    let frias = ranking.slice(17, 25);
+
+                    renderBadges('badge-quentes', quentes.map(q => q.dezena), 'bg-hot');
+                    renderBadges('badge-medias', medias.map(m => m.dezena), 'bg-med');
+                    renderBadges('badge-frias', frias.map(f => f.dezena), 'bg-cold');
+
+                    let encontradas = new Set();
+                    for(let i=0; i<historicoCompleto.length; i++) {
+                        let dzs = historicoCompleto[i].dezenas.map(Number);
+                        dzs.forEach(d => encontradas.add(d));
+                        
+                        if (encontradas.size === 25) {
+                            encontradas.clear();
+                            for(let j=0; j<i; j++) {
+                                historicoCompleto[j].dezenas.map(Number).forEach(d => encontradas.add(d));
+                            }
+                            break;
+                        }
+                    }
+
+                    let faltantesCiclo = [];
+                    if (encontradas.size === 0) {
+                        for(let i=1; i<=25; i++) faltantesCiclo.push(i);
+                    } else {
+                        for(let i=1; i<=25; i++) {
+                            if(!encontradas.has(i)) faltantesCiclo.push(i);
+                        }
+                    }
+                    renderBadges('badge-ciclo', faltantesCiclo, 'bg-cycle');
+                }
+
+                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Dados Atualizada!`;
+                statusDiv.className = 'api-status loaded';
+
+            } catch (err) {
+                statusDiv.innerHTML = '⚠️ Erro ao conectar. A base de dados externa pode estar fora do ar.';
+                statusDiv.className = 'api-status error';
+                nextDrawInfo.innerText = "Não foi possível carregar as informações abertas no momento.";
+            }
+        }
+
+        function renderBadges(containerId, arrayNum, cssClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            arrayNum.sort((a,b)=>a-b).forEach(num => {
+                let s = document.createElement('span');
+                s.className = 'badge ' + cssClass;
+                s.innerText = num < 10 ? '0'+num : num;
+                container.appendChild(s);
+            });
+        }
+
+        window.onload = inicializarDados;
+    </script>
+</body>
+</html>
