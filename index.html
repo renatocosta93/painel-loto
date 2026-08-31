@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Lotofacil</title>
+    <!-- Biblioteca HTML2Canvas para gerar a imagem do bilhete -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -42,17 +43,20 @@
         
         h2 { margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
         
+        /* Volante */
         .volante { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
         .dezena { background: #e0e0e0; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; font-weight: bold; color: #555; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
         .dezena:hover { background: #d0d0d0; }
         .dezena.selected { background: var(--primary); color: white; transform: scale(1.05); box-shadow: 0 2px 5px rgba(147, 0, 137, 0.4); }
         
+        /* Estatísticas */
         .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
         .stat-label { font-weight: 600; }
         .stat-value { font-weight: bold; padding: 4px 10px; border-radius: 20px; background: #eee; }
         .status-ok { background: var(--success); color: white; }
         .status-bad { background: var(--danger); color: white; }
         
+        /* Badges */
         .badge-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; }
         .bg-hot { background-color: var(--danger); }
@@ -61,6 +65,7 @@
         .bg-cycle { background-color: var(--primary); }
         .bg-drawn { background-color: #28a745; font-size: 14px; padding: 6px 10px;}
 
+        /* Botões */
         .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; font-size: 14px; text-align: center; }
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: #7a0072; }
@@ -77,10 +82,12 @@
         .latest-draw-container { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;}
         .latest-draw-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;}
 
+        /* Multi Gerador */
         .multi-gen { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
         .multi-gen input { padding: 10px; width: 80px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
         textarea { width: 100%; height: 150px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: monospace; font-size: 16px; resize: vertical; margin-top: 10px; }
         
+        /* Ajustes para Celular (Mobile) */
         @media (max-width: 600px) {
             .multi-gen { flex-direction: column; align-items: stretch; }
             .multi-gen input, .multi-gen button { width: 100%; margin-bottom: 5px; }
@@ -89,11 +96,13 @@
             .dezena { width: 40px; height: 40px; font-size: 15px; }
         }
 
+        /* Nota do Bilhete */
         .grade-panel { background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px dashed #ccc; }
         .bolao-results { background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; border: 1px solid #ccc; }
         .bolao-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
         .bolao-item:last-child { border-bottom: none; }
 
+        /* Container escondido para exportar PNG */
         #export-canvas-container { position: absolute; top: -9999px; left: -9999px; background: white; padding: 20px; border-radius: 10px; width: 400px; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border: 2px solid var(--primary); }
         .export-title { text-align: center; color: var(--primary); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
         .export-game { margin-bottom: 10px; padding: 10px; background: #f4f7f6; border-radius: 5px; display: flex; flex-direction: column; }
@@ -112,10 +121,10 @@
 
     <div class="container">
         
-        <!-- Bloco de Status da API -->
+        <!-- Bloco de Status da API e Último Sorteio -->
         <div class="panel panel-full" id="api-panel">
             <div id="api-status" class="api-status">
-                Tentando conexão múltipla com as loterias (Anti-Bloqueio)...
+                Tentando conexão automática com as loterias...
             </div>
             <div id="last-update-time" class="update-info"></div>
 
@@ -136,10 +145,6 @@
                 <div class="stat-item">
                     <span class="stat-label">Dezenas Frias (Menos saem):</span>
                     <div class="badge-list" id="badge-frias"></div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Dezenas Faltantes do Ciclo:</span>
-                    <div class="badge-list" id="badge-ciclo"></div>
                 </div>
             </div>
         </div>
@@ -244,13 +249,6 @@
                 <li><strong>Evita fileiras grandes:</strong> Trava sequências muito longas (como 1, 2, 3, 4, 5, 6, 7 juntos), que são eventos extremamente raros.</li>
             </ul>
         </div>
-    </div>
-
-    <!-- Div oculta para gerar a imagem via html2canvas -->
-    <div id="export-canvas-container">
-        <div class="export-title">🍀 Lotofácil - Meus Jogos</div>
-        <div id="export-games-list"></div>
-        <div class="export-footer">Gerado pelo Painel Inteligente</div>
     </div>
 
     <script>
@@ -381,6 +379,7 @@
                 document.getElementById('grade-panel').style.borderColor = aval.cor;
                 document.getElementById('stat-nota-msg').innerText = aval.percentual === 100 ? 'Jogo 100% nos padrões.' : (aval.percentual >= 66 ? 'Bom jogo, mas tem padrões fora da média.' : 'Jogo Arriscado! Fora dos padrões.');
                 document.getElementById('stat-nota-msg').style.color = aval.cor;
+
             } else {
                 updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk);
                 updateBadge('stat-moldura', `${aval.moldura} / ${selecionadas.length - aval.moldura}`, aval.isMolOk);
@@ -554,16 +553,13 @@
         }
 
         // ==========================================
-        // SISTEMA DE CONEXÃO ANTI-BLOQUEIO
+        // SISTEMA DE CONEXÃO AUTOMÁTICO (ONLINE)
         // ==========================================
         async function buscarDadosComFallback() {
             const rotas = [
-                'https://loterias-api.brchallenges.com/api/lotofacil',
                 'https://brasilapi.com.br/api/loterias/v1/lotofacil',
                 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://brasilapi.com.br/api/loterias/v1/lotofacil')
             ];
-
-            let ultimoErro = "";
 
             for (let url of rotas) {
                 try {
@@ -572,11 +568,9 @@
                     if (response.ok) {
                         return await response.json();
                     }
-                } catch(e) {
-                    ultimoErro = e.message || "Erro desconhecido de rede ou SSL";
-                }
+                } catch(e) { }
             }
-            throw new Error(ultimoErro);
+            throw new Error("Conexão bloqueada no ambiente local.");
         }
 
         async function inicializarDados() {
@@ -585,6 +579,11 @@
             const nextDrawInfo = document.getElementById('header-next-draw-info');
             
             try {
+                // Checa se está abrindo do content:// ou file://
+                if (window.location.protocol === 'file:' || window.location.href.startsWith('content:')) {
+                    throw new Error("Você abriu o arquivo direto do celular. O navegador bloqueou a internet por segurança.");
+                }
+
                 let dadosIniciais = await buscarDadosComFallback();
 
                 let cAtual = dadosIniciais.concurso || dadosIniciais.numero;
@@ -611,22 +610,23 @@
                 dadosCarregados = true;
                 
                 const dataAtualizacao = new Date();
-                updateTimeDiv.innerText = `🔄 Sincronizado com sucesso em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
+                updateTimeDiv.innerText = `🔄 Atualizado em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
 
                 document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${cAtual} (${dataAtual || 'Data indisponível'})`;
                 renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
 
+                // Histórico foi ocultado para garantir funcionamento rápido da avaliação
                 document.getElementById('historico-info').style.display = 'none';
 
-                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base de Loterias!`;
+                statusDiv.innerHTML = `✅ Conectado com Sucesso à Base Oficial Ao Vivo!`;
                 statusDiv.className = 'api-status loaded';
 
                 if(selecionadas.length === 15) atualizarEstatisticas();
 
             } catch (err) {
-                statusDiv.innerHTML = `⚠️ O seu navegador ou a DATA do aparelho bloqueou a rede (${err}). O Gerador Offline continuará funcionando.`;
+                statusDiv.innerHTML = `⚠️ <strong>BLOQUEIO:</strong> ${err.message}<br><br>👉 <strong>SOLUÇÃO:</strong> Abra o painel usando o link do seu GitHub (Ex: <em>https://seu-nome.github.io</em>) para liberar o acesso ao vivo.`;
                 statusDiv.className = 'api-status error';
-                nextDrawInfo.innerText = "Verifique a data (ano) do seu celular para liberar a conexão segura.";
+                nextDrawInfo.innerText = "Acesso online negado pelo navegador.";
             }
         }
 
