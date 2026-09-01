@@ -28,18 +28,25 @@ jobs:
 
           async function fetchLoto(concurso = '') {
               const endpoint = concurso ? `/${concurso}` : '';
+              
+              // 3 Rotas de contingência (Incluindo Caixa Oficial)
               const urls = [
                   `https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`,
-                  `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`
+                  `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`,
+                  `https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil${endpoint}`
               ];
               
               for (let u of urls) {
                   try {
-                      let res = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(6000) });
+                      console.log(`Tentando buscar dados em: ${u}`);
+                      // Aumentado o limite de tempo para 8 segundos
+                      let res = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }, signal: AbortSignal.timeout(8000) });
+                      
                       if (res.ok) {
                           let data = await res.json();
                           let num = data.concurso || data.numero;
                           let dezenas = data.dezenas || data.listaDezenas;
+                          
                           if (num && dezenas && dezenas.length === 15) {
                               let acumulou = data.acumulou || false;
                               let ganhadores15 = 0; let premio15 = 0;
@@ -47,10 +54,11 @@ jobs:
                                   ganhadores15 = data.premiacao[0].vencedores || data.premiacao[0].ganhadores || data.quantidadeGanhadores || 0;
                                   premio15 = data.premiacao[0].premio || data.premiacao[0].valorPremio || data.valorPremio || 0;
                               }
+                              console.log(`✅ Sucesso ao ler dados da API!`);
                               return {
                                   concurso: num,
                                   data: data.data || data.dataApuracao,
-                                  dezenas: dezenas.map(Number).sort((a,b)=>a-b),
+                                  dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b),
                                   acumulou: acumulou,
                                   ganhadores: ganhadores15,
                                   premio: premio15,
@@ -59,8 +67,12 @@ jobs:
                                   proxPremio: data.valorEstimadoProximoConcurso || data.valorEstimadoProximoSorteio || 0
                               };
                           }
+                      } else {
+                          console.log(`⚠️ API recusou conexão (Status: ${res.status}). Pulando para a próxima...`);
                       }
-                  } catch (e) {}
+                  } catch (e) {
+                      console.log(`❌ Erro ou lentidão na API: ${e.message}`);
+                  }
               }
               return null;
           }
@@ -72,7 +84,10 @@ jobs:
               }
 
               let ultimo = await fetchLoto('');
-              if (!ultimo) process.exit(1);
+              if (!ultimo) {
+                  console.log("🚨 ERRO CRÍTICO: Todas as 3 fontes oficiais falharam ou bloquearam o robô hoje.");
+                  process.exit(1);
+              }
 
               let mapHist = {};
               for (let j of historico) if (j && j.concurso) mapHist[j.concurso] = j;
@@ -105,8 +120,7 @@ jobs:
                   }
 
                   const d = new Date();
-                  // Ajuste de fuso horário simples para BRT (-3)
-                  d.setHours(d.getHours() - 3);
+                  d.setHours(d.getHours() - 3); // BRT
                   const dataAtual = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear() + ' às ' + ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
 
                   let ganhadoresTxt = 'Apurando rateio...';
@@ -133,8 +147,13 @@ jobs:
                           body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true })
                       });
                       let botData = await resBot.json();
-                      if (botData.ok) fs.writeFileSync(msgIdFile, botData.result.message_id.toString());
-                  } catch(e) {}
+                      if (botData.ok) {
+                          fs.writeFileSync(msgIdFile, botData.result.message_id.toString());
+                          console.log("✅ Mensagem enviada com sucesso ao Telegram.");
+                      }
+                  } catch(e) { console.log("❌ Falha ao enviar para o Telegram."); }
+              } else {
+                  console.log("⚠️ Chaves do Telegram não encontradas nos Secrets.");
               }
           }
           run();
