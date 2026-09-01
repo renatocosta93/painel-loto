@@ -18,7 +18,13 @@
       19,
       23,
       25
-    ]
+    ],
+    "acumulou": false,
+    "ganhadores": 0,
+    "premio": 0,
+    "proxConcurso": 3776,
+    "proxData": "31/08/2026",
+    "proxPremio": 2000000
   },
   {
     "concurso": 3774,
