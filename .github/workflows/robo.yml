@@ -13,49 +13,44 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Motor de Sincronizacao de Dados Ricos
+      - name: Sincronização Lotofácil e Telegram
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           cat << 'EOF' > script.js
           process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
           const fs = require('fs');
 
+          function toBRL(valor) {
+              return "R$ " + Number(valor).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          }
+
           async function fetchLoto(concurso = '') {
               const endpoint = concurso ? `/${concurso}` : '';
               const urls = [
-                  `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`,
                   `https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`,
-                  `https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil${endpoint}`
+                  `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`
               ];
               
               for (let u of urls) {
                   try {
-                      let res = await fetch(u, { 
-                          headers: { 
-                              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                              'Accept': 'application/json'
-                          },
-                          signal: AbortSignal.timeout(6000)
-                      });
+                      let res = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(6000) });
                       if (res.ok) {
                           let data = await res.json();
                           let num = data.concurso || data.numero;
                           let dezenas = data.dezenas || data.listaDezenas;
-                          let dataSorteio = data.data || data.dataApuracao;
-                          
                           if (num && dezenas && dezenas.length === 15) {
                               let acumulou = data.acumulou || false;
-                              let ganhadores15 = 0;
-                              let premio15 = 0;
-                              
+                              let ganhadores15 = 0; let premio15 = 0;
                               if (data.premiacao && data.premiacao.length > 0) {
-                                  ganhadores15 = data.premiacao[0].vencedores || data.premiacao[0].ganhadores || 0;
-                                  premio15 = data.premiacao[0].premio || data.premiacao[0].valorPremio || 0;
+                                  ganhadores15 = data.premiacao[0].vencedores || data.premiacao[0].ganhadores || data.quantidadeGanhadores || 0;
+                                  premio15 = data.premiacao[0].premio || data.premiacao[0].valorPremio || data.valorPremio || 0;
                               }
-                              
                               return {
                                   concurso: num,
-                                  data: dataSorteio,
-                                  dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b),
+                                  data: data.data || data.dataApuracao,
+                                  dezenas: dezenas.map(Number).sort((a,b)=>a-b),
                                   acumulou: acumulou,
                                   ganhadores: ganhadores15,
                                   premio: premio15,
@@ -71,57 +66,84 @@ jobs:
           }
 
           async function run() {
-              console.log("Iniciando varredura com captura de prêmios...");
               let historico = [];
               if (fs.existsSync('resultados.json')) {
-                  try {
-                      let txt = fs.readFileSync('resultados.json', 'utf8');
-                      if(txt.trim()) historico = JSON.parse(txt);
-                  } catch(e) {}
+                  try { historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8')); } catch(e) {}
               }
 
               let ultimo = await fetchLoto('');
-              if (!ultimo) {
-                  console.log("Erro Crítico: Todas as APIs bloqueadas.");
-                  process.exit(1);
-              }
+              if (!ultimo) process.exit(1);
 
               let mapHist = {};
-              for (let j of historico) {
-                  if (j && j.concurso) mapHist[j.concurso] = j;
-              }
+              for (let j of historico) if (j && j.concurso) mapHist[j.concurso] = j;
 
               let novaTabela = [];
               for (let i = 0; i < 50; i++) {
                   let alvo = ultimo.concurso - i;
                   if (alvo < 1) break;
-                  
-                  // Injeta os dados ricos sempre no concurso mais recente (posição 0)
-                  if (i === 0) {
-                      novaTabela.push(ultimo);
-                  } else if (mapHist[alvo] && mapHist[alvo].dezenas) {
-                      novaTabela.push(mapHist[alvo]);
-                  } else {
+                  if (i === 0) novaTabela.push(ultimo);
+                  else if (mapHist[alvo] && mapHist[alvo].dezenas) novaTabela.push(mapHist[alvo]);
+                  else {
                       let draw = await fetchLoto(alvo);
                       if (draw) novaTabela.push(draw);
                       await new Promise(r => setTimeout(r, 800));
                   }
               }
 
-              if (novaTabela.length > 0) {
-                  fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
-                  console.log(`Sucesso: Atualizado com os dados do concurso ${ultimo.concurso}`);
-              } else {
-                  process.exit(1);
+              fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
+
+              // --- INTEGRAÇÃO TELEGRAM ---
+              const token = process.env.TELEGRAM_TOKEN;
+              const chatId = process.env.TELEGRAM_CHAT_ID;
+              
+              if (token && chatId) {
+                  let msgIdFile = 'telegram_msg_id.txt';
+                  let oldMsgId = fs.existsSync(msgIdFile) ? fs.readFileSync(msgIdFile, 'utf8').trim() : null;
+
+                  if (oldMsgId) {
+                      try { await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${oldMsgId}`); } catch(e) {}
+                  }
+
+                  const d = new Date();
+                  // Ajuste de fuso horário simples para BRT (-3)
+                  d.setHours(d.getHours() - 3);
+                  const dataAtual = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear() + ' às ' + ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+
+                  let ganhadoresTxt = 'Apurando rateio...';
+                  if (ultimo.acumulou) ganhadoresTxt = 'Acumulou (0 ganhadores)';
+                  else if (ultimo.ganhadores > 0) ganhadoresTxt = `${ultimo.ganhadores} ganhador(es)`;
+
+                  let texto = `🍀 *Painel Lotofácil Atualizado*\n` +
+                              `🔄 *Última Atualização:* ${dataAtual}\n\n` +
+                              `🏆 *Último Sorteio:* Concurso ${ultimo.concurso} (${ultimo.data})\n` +
+                              `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n` +
+                              `💰 *Prêmio:* ${ultimo.premio ? toBRL(ultimo.premio) : 'Apurando...'}\n\n` +
+                              `🔮 *Próximo Sorteio:* Concurso ${ultimo.proxConcurso} (${ultimo.proxData})\n` +
+                              `⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n\n` +
+                              `✅ *Base de Dados (50 Jogos):*\n` +
+                              `⏮️ Mais antigo: ${novaTabela[novaTabela.length-1].concurso} (${novaTabela[novaTabela.length-1].data})\n` +
+                              `🆕 Mais recente: ${ultimo.concurso} (${ultimo.data})\n\n` +
+                              `🔗 *Acesse seu painel:* https://renatocosta93.github.io/painel-loto/\n` +
+                              `🏦 *Fonte Oficial:* [Caixa Econômica](https://loterias.caixa.gov.br/Paginas/Lotofacil.aspx)`;
+
+                  try {
+                      let resBot = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                          method: 'POST',
+                          headers: {'Content-Type': 'application/json'},
+                          body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true })
+                      });
+                      let botData = await resBot.json();
+                      if (botData.ok) fs.writeFileSync(msgIdFile, botData.result.message_id.toString());
+                  } catch(e) {}
               }
           }
           run();
           EOF
           node script.js
-      - name: Publicar Tabela Consolidada
+      - name: Publicar Tabela e ID do Telegram
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
-          git add resultados.json
-          git commit -m "Auto: Tabela atualizada com prêmios e ganhadores" || echo "Sem mudanças"
+          git add resultados.json telegram_msg_id.txt || true
+          git commit -m "Auto: Tabela e Telegram atualizados" || echo "Sem mudanças"
           git push
