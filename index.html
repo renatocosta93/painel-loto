@@ -123,7 +123,7 @@
         <!-- Bloco de Status Oficial -->
         <div class="panel panel-full" id="api-panel">
             <div id="api-status" class="api-status">
-                Lendo tabela consolidada do sistema...
+                Procurando tabela consolidada...
             </div>
             
             <div id="last-update-time" class="update-info">Aguardando dados...</div>
@@ -564,7 +564,7 @@
         }
 
         // =======================================================
-        // LEITURA DA TABELA GERADA PELO ROBÔ
+        // MOTOR BLINDADO DE LEITURA DIRETA DO REPOSITÓRIO
         // =======================================================
         async function carregarDadosDoRobo() {
             const statusDiv = document.getElementById('api-status');
@@ -572,15 +572,29 @@
             const topDrawInfo = document.getElementById('header-next-draw-info');
             
             try {
-                // Puxa a tabela estática que o robô atualizará diariamente
                 let bypassCache = new Date().getTime();
-                let response = await fetch('resultados.json?nocache=' + bypassCache);
+                let historicoCompleto = null;
                 
-                if (!response.ok) throw new Error("A tabela ainda não foi criada.");
+                // FECHANDO A BRECHA: O painel agora lê o arquivo cru (raw) ignorando qualquer erro de rota do navegador
+                const rotasBlindadas = [
+                    'https://raw.githubusercontent.com/renatocosta93/painel-loto/main/resultados.json?v=' + bypassCache,
+                    'https://raw.githubusercontent.com/renatocosta93/painel-loto/master/resultados.json?v=' + bypassCache,
+                    './resultados.json?v=' + bypassCache
+                ];
+
+                for(let rota of rotasBlindadas) {
+                    try {
+                        let req = await fetch(rota, { cache: 'no-store' });
+                        if(req.ok) {
+                            historicoCompleto = await req.json();
+                            if(historicoCompleto && historicoCompleto.length > 0) break; // Sucesso, para a busca
+                        }
+                    } catch(e) {}
+                }
                 
-                let historicoCompleto = await response.json();
+                if (!historicoCompleto) throw new Error("A tabela ainda não está acessível.");
                 
-                // Extrai o mais novo e o mais antigo da série para exibir transparência
+                // Extrai o mais novo e o mais antigo da série
                 let maisRecente = historicoCompleto[0];
                 let maisAntigo = historicoCompleto[historicoCompleto.length - 1];
                 let qtdJogos = historicoCompleto.length;
@@ -588,10 +602,8 @@
                 ultimoSorteio = maisRecente.dezenas;
                 dadosCarregados = true;
                 
-                // Exibe a confirmação no topo
                 topDrawInfo.innerHTML = `🟢 Painel Atualizado | Lendo Base Consolidada de ${qtdJogos} Concursos`;
                 
-                // Constrói o Resumo Visual no bloco do último sorteio
                 const resumoHtml = `
                     <div style="font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">📊 Resumo da Base de Dados</div>
                     <div style="font-size: 0.95rem; color: #444; margin-bottom: 6px; text-align: left; padding-left: 10px;">🆕 <strong>Mais Recente:</strong> Concurso ${maisRecente.concurso} (${maisRecente.data})</div>
@@ -602,7 +614,7 @@
                 document.getElementById('latest-draw-container').innerHTML = resumoHtml + `<div class="badge-list" id="latest-draw-numbers" style="justify-content: center;"></div>`;
                 renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
 
-                // Histórico de 50 jogos processado
+                // Histórico processado
                 let freq = {};
                 for(let i=1; i<=25; i++) freq[i] = 0;
                 historicoCompleto.forEach(sorteio => {
@@ -637,11 +649,22 @@
                 if(selecionadas.length === 15) atualizarEstatisticas();
 
             } catch (err) {
-                statusDiv.innerHTML = `⚠️ Aguardando a primeira execução do robô para criar a tabela. O Gerador base continuará funcionando.`;
+                statusDiv.innerHTML = `⚠️ Falha de rota. Limpe o histórico do navegador e tente novamente.`;
                 statusDiv.className = 'api-status error';
-                topDrawInfo.innerText = "Criando sistema autônomo...";
+                topDrawInfo.innerText = "Conexão interrompida...";
                 updateTimeDiv.innerText = "Nenhuma tabela detectada ainda.";
             }
+        }
+
+        function renderBadges(containerId, arrayNum, cssClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            arrayNum.sort((a,b)=>a-b).forEach(num => {
+                let s = document.createElement('span');
+                s.className = 'badge ' + cssClass;
+                s.innerText = num < 10 ? '0'+num : num;
+                container.appendChild(s);
+            });
         }
 
         window.onload = carregarDadosDoRobo;
