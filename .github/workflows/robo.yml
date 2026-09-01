@@ -1,0 +1,45 @@
+name: Atualizador Diário
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  atualiza:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Rodar script
+        run: |
+          cat << 'EOF' > script.js
+          const fs = require('fs');
+          async function run() {
+              let historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8'));
+              let res = await fetch('https://brasilapi.com.br/api/loterias/v1/lotofacil');
+              let ultimo = await res.json();
+              let cAtual = ultimo.concurso || ultimo.numero;
+              
+              if (cAtual > historico[0].concurso) {
+                  historico.unshift({
+                      concurso: cAtual,
+                      data: ultimo.data || ultimo.dataApuracao,
+                      dezenas: (ultimo.dezenas || ultimo.listaDezenas).map(Number)
+                  });
+                  if (historico.length > 50) historico = historico.slice(0, 50);
+                  fs.writeFileSync('resultados.json', JSON.stringify(historico, null, 2));
+              }
+          }
+          run();
+          EOF
+          node script.js
+      - name: Salvar Tabela
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Robo Atualizador"
+          git add resultados.json
+          git commit -m "Auto: Concurso atualizado na tabela" || echo "Sem mudanças hoje"
+          git push
