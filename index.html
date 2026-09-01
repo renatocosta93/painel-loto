@@ -78,10 +78,8 @@
         .api-status.loaded { background: #d4edda; color: #155724; }
         .api-status.error { background: #f8d7da; color: #721c24; }
         
-        .update-info { text-align: center; font-size: 12px; color: #666; margin-bottom: 20px; font-style: italic; }
+        .update-info { text-align: center; font-size: 13px; color: #555; margin-bottom: 20px; font-style: normal; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd;}
         .latest-draw-container { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;}
-        .latest-draw-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; font-size: 1.1rem;}
-        .latest-draw-status { font-weight: bold; margin-bottom: 10px; font-size: 0.95rem; }
 
         /* Multi Gerador */
         .multi-gen { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
@@ -103,7 +101,7 @@
         .bolao-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
         .bolao-item:last-child { border-bottom: none; }
 
-        /* Container oculto para gerar imagem */
+        /* Container oculto para exportar PNG */
         #export-canvas-container { position: absolute; top: -9999px; left: -9999px; background: white; padding: 20px; border-radius: 10px; width: 400px; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border: 2px solid var(--primary); }
         .export-title { text-align: center; color: var(--primary); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;}
         .export-game { margin-bottom: 10px; padding: 10px; background: #f4f7f6; border-radius: 5px; display: flex; flex-direction: column; }
@@ -116,23 +114,23 @@
 
     <div class="header">
         <h1>Painel Lotofácil</h1>
+        <p id="header-next-draw-info" style="font-size: 1.1rem; margin-top: 10px; color: #e8f5e9;">Carregando Base de Dados...</p>
         <div class="clock-container" id="real-time-clock">Carregando relógio...</div>
     </div>
 
     <div class="container">
         
-        <!-- Bloco de Status da Extração e Último Sorteio -->
+        <!-- Bloco de Status Oficial -->
         <div class="panel panel-full" id="api-panel">
             <div id="api-status" class="api-status">
-                Consultando resultados atualizados...
+                Lendo tabela consolidada do sistema...
             </div>
-            <div id="last-update-time" class="update-info"></div>
+            
+            <div id="last-update-time" class="update-info">Aguardando dados...</div>
 
             <div id="historico-info" style="display: none;">
-                <div class="latest-draw-container">
-                    <div class="latest-draw-title" id="latest-draw-title">Último Concurso: Carregando...</div>
-                    <div class="latest-draw-status" id="latest-draw-status"></div>
-                    <div class="badge-list" id="latest-draw-numbers" style="justify-content: center;"></div>
+                <div class="latest-draw-container" id="latest-draw-container">
+                    <!-- Preenchido via Javascript -->
                 </div>
 
                 <div class="stat-item">
@@ -221,7 +219,7 @@
 
         <!-- Bloco Gerador em Massa e Bolão -->
         <div class="panel panel-full">
-            <h2>3. Gerador e Avaliador de Bolão (Múltiplos Jogos)</h2>
+            <h2>3. Gerador e Avaliador de Bolão</h2>
             <p style="margin-bottom: 15px; font-size: 14px;">Gere múltiplos bilhetes dentro dos padrões matemáticos, ou vá montando seus jogos no Item 1 e clicando em <strong>"Adicionar ao Bolão"</strong> para ir acumulando eles aqui embaixo.</p>
             
             <div class="multi-gen">
@@ -242,6 +240,20 @@
             </div>
         </div>
 
+        <!-- Bloco de Informações -->
+        <div class="panel panel-full" style="text-align: justify; font-size: 15px; line-height: 1.6; color: #444;">
+            <h2 style="font-size: 1.1rem; border-bottom: none; margin-bottom: 10px; color: var(--primary);">Como este painel escolhe os números? (Para iniciantes)</h2>
+            <p>Os sorteios da loteria são aleatórios, mas a matemática nos mostra que existem <strong>padrões que se repetem com muita frequência</strong>. Este painel não escolhe números "no escuro". O gerador funciona como um filtro super inteligente que avalia milhares de combinações em um segundo e só deixa passar para você os jogos que têm a maior chance de ocorrer historicamente. Para um jogo ser gerado aqui, ele é obrigado a respeitar as seguintes regras:</p>
+            <ul style="margin-left: 20px; margin-bottom: 20px; margin-top: 10px;">
+                <li><strong>Metade a Metade:</strong> Um equilíbrio perfeito entre números Pares e Ímpares (geralmente 7 ou 8 de cada).</li>
+                <li><strong>A Moldura:</strong> Mantém a quantidade exata de números que ficam na borda do volante e os que ficam no centro.</li>
+                <li><strong>Soma Controlada:</strong> A soma de todos os 15 números escolhidos precisa ficar dentro da média que mais sai na loteria (entre 180 e 220).</li>
+                <li><strong>Filtro de Repetidas:</strong> Analisa o último sorteio que acabou de acontecer e repete propositalmente entre 8 e 10 dezenas, pois é isso que acontece em quase todos os sorteios da história.</li>
+                <li><strong>Evita fileiras grandes:</strong> Trava sequências muito longas (como 1, 2, 3, 4, 5, 6, 7 juntos), que são eventos extremamente raros.</li>
+            </ul>
+            <h2 style="font-size: 1.1rem; border-bottom: none; margin-bottom: 10px; color: var(--primary);">Fontes de Dados (Geração Autônoma)</h2>
+            <p>Para garantir que o seu painel nunca sofra com bloqueios do navegador e funcione imediatamente, ele está integrado a um <strong>Robô de Atualização Automática no GitHub</strong>. Diariamente o robô se conecta à base oficial, captura as informações, consolida a matriz dos últimos 50 jogos e grava isso na tabela do seu painel. Assim que você entra, a informação é processada em milissegundos.</p>
+        </div>
     </div>
 
     <!-- Div oculta para gerar a imagem via html2canvas -->
@@ -257,7 +269,6 @@
         
         let selecionadas = [];
         let ultimoSorteio = [];
-        let historicoCompleto = [];
         let dadosCarregados = false;
 
         function atualizarRelogio() {
@@ -552,192 +563,88 @@
             gerarECompartilharCanvas(jogos, true);
         }
 
-        // ==========================================================
-        // MOTOR DE EXTRAÇÃO AUTOMÁTICA DOS RESULTADOS (LOTORAMA + PROXY)
-        // ==========================================================
-        async function carregarResultadosLotorama() {
-            const targetUrl = 'https://lotorama.com.br/lotofacil/todos-os-resultados/?ano=2026';
-            const proxies = [
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
-                'https://corsproxy.io/?' + encodeURIComponent(targetUrl)
-            ];
-
-            let htmlTexto = "";
-            for (let pUrl of proxies) {
-                try {
-                    let res = await fetch(pUrl, { cache: "no-store" });
-                    if (res.ok) {
-                        htmlTexto = await res.text();
-                        if (htmlTexto.length > 500) break;
-                    }
-                } catch(e) { }
-            }
-
-            if (!htmlTexto) throw new Error("Não foi possível carregar a página do Lotorama.");
-
-            // Parser manual do HTML da tabela de resultados
-            const doc = new DOMParser().parseFromString(htmlTexto, 'text/html');
-            const linhas = doc.querySelectorAll('table tr, .table tr');
-            let jogosExtraidos = [];
-
-            linhas.forEach(linha => {
-                const colunas = linha.querySelectorAll('td');
-                if (colunas.length >= 3) {
-                    let concTexto = colunas[0].innerText.trim();
-                    let dataTexto = colunas[1].innerText.trim();
-                    let numMatch = concTexto.match(/\d+/);
-                    
-                    if (numMatch) {
-                        let concursoNum = parseInt(numMatch[0]);
-                        // Extrai as dezenas dos elementos restantes
-                        let dezenasArray = [];
-                        for (let k = 2; k < colunas.length; k++) {
-                            let matches = colunas[k].innerText.match(/\b(0[1-9]|1[0-9]|2[0-5]|[1-9])\b/g);
-                            if (matches) {
-                                matches.forEach(m => dezenasArray.push(parseInt(m)));
-                            }
-                        }
-                        // Remove duplicadas e garante 15 dezenas
-                        let dezenasUnicas = [...new Set(dezenasArray)].sort((a,b)=>a-b);
-                        if (dezenasUnicas.length === 15) {
-                            jogosExtraidos.push({
-                                concurso: concursoNum,
-                                data: dataTexto,
-                                dezenas: dezenasUnicas
-                            });
-                        }
-                    }
-                }
-            });
-
-            // Se a tabela usar formato condensado de texto
-            if (jogosExtraidos.length === 0) {
-                const linhasTexto = htmlTexto.split('\n');
-                linhasTexto.forEach(l => {
-                    let concMatch = l.match(/Concurso\s*(\d+)/i);
-                    let dezenasMatch = l.match(/\b(0[1-9]|1[0-9]|2[0-5]|[1-9])\b/g);
-                    if (concMatch && dezenasMatch && dezenasMatch.length >= 15) {
-                        let dzs = dezenasMatch.slice(0, 15).map(Number).sort((a,b)=>a-b);
-                        jogosExtraidos.push({
-                            concurso: parseInt(concMatch[1]),
-                            data: "2026",
-                            dezenas: dzs
-                        });
-                    }
-                });
-            }
-
-            if (jogosExtraidos.length === 0) {
-                // Fallback de segurança usando a base recente de 2026
-                jogosExtraidos = [
-                    { concurso: 3775, data: "30/08/2026", dezenas: [1, 4, 5, 6, 8, 10, 11, 12, 13, 15, 17, 18, 19, 23, 25] },
-                    { concurso: 3774, data: "28/08/2026", dezenas: [1, 3, 4, 5, 6, 7, 9, 12, 14, 15, 16, 18, 19, 23, 24] },
-                    { concurso: 3773, data: "27/08/2026", dezenas: [3, 4, 7, 9, 11, 13, 14, 15, 17, 18, 20, 21, 22, 24, 25] },
-                    { concurso: 3772, data: "26/08/2026", dezenas: [3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 18, 20, 21, 23, 25] },
-                    { concurso: 3771, data: "25/08/2026", dezenas: [2, 3, 4, 5, 9, 10, 11, 12, 15, 16, 17, 18, 21, 23, 25] },
-                    { concurso: 3770, data: "24/08/2026", dezenas: [1, 2, 4, 7, 8, 12, 13, 15, 16, 17, 18, 19, 23, 24, 25] },
-                    { concurso: 3769, data: "23/08/2026", dezenas: [1, 2, 3, 5, 8, 9, 11, 13, 14, 16, 17, 19, 21, 23, 24] }
-                ];
-            }
-
-            jogosExtraidos.sort((a,b) => b.concurso - a.concurso);
-            return jogosExtraidos.slice(0, 50);
-        }
-
-        async function inicializarDados() {
+        // =======================================================
+        // LEITURA DA TABELA GERADA PELO ROBÔ
+        // =======================================================
+        async function carregarDadosDoRobo() {
             const statusDiv = document.getElementById('api-status');
             const updateTimeDiv = document.getElementById('last-update-time');
+            const topDrawInfo = document.getElementById('header-next-draw-info');
             
             try {
-                statusDiv.innerHTML = 'Conectando ao Lotorama e sincronizando últimos 50 concursos...';
+                // Puxa a tabela estática que o robô atualizará diariamente
+                let bypassCache = new Date().getTime();
+                let response = await fetch('resultados.json?nocache=' + bypassCache);
                 
-                historicoCompleto = await carregarResultadosLotorama();
-
+                if (!response.ok) throw new Error("A tabela ainda não foi criada.");
+                
+                let historicoCompleto = await response.json();
+                
+                // Extrai o mais novo e o mais antigo da série para exibir transparência
                 let maisRecente = historicoCompleto[0];
+                let maisAntigo = historicoCompleto[historicoCompleto.length - 1];
+                let qtdJogos = historicoCompleto.length;
+
                 ultimoSorteio = maisRecente.dezenas;
                 dadosCarregados = true;
                 
-                const dataAtualizacao = new Date();
-                updateTimeDiv.innerText = `🔄 Histórico de ${historicoCompleto.length} concursos sincronizado em: ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
-
-                document.getElementById('latest-draw-title').innerText = `Último Concurso Analisado: ${maisRecente.concurso} (${maisRecente.data})`;
+                // Exibe a confirmação no topo
+                topDrawInfo.innerHTML = `🟢 Painel Atualizado | Lendo Base Consolidada de ${qtdJogos} Concursos`;
                 
-                // Status de Acumulado / Ganhadores
-                const statusEl = document.getElementById('latest-draw-status');
-                statusEl.innerHTML = `<span style="color: var(--success); background: #e8f5e9; padding: 4px 10px; border-radius: 4px; border: 1px solid #c8e6c9;">🏆 Sorteio Realizado e Apurado</span>`;
+                // Constrói o Resumo Visual no bloco do último sorteio
+                const resumoHtml = `
+                    <div style="font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">📊 Resumo da Base de Dados</div>
+                    <div style="font-size: 0.95rem; color: #444; margin-bottom: 6px; text-align: left; padding-left: 10px;">🆕 <strong>Mais Recente:</strong> Concurso ${maisRecente.concurso} (${maisRecente.data})</div>
+                    <div style="font-size: 0.95rem; color: #444; margin-bottom: 15px; text-align: left; padding-left: 10px;">⏮️ <strong>Mais Antigo da série:</strong> Concurso ${maisAntigo.concurso} (${maisAntigo.data})</div>
+                    <div style="font-size: 1rem; color: var(--primary); margin-bottom: 10px; font-weight: bold;">Dezenas do Último Sorteio:</div>
+                `;
 
+                document.getElementById('latest-draw-container').innerHTML = resumoHtml + `<div class="badge-list" id="latest-draw-numbers" style="justify-content: center;"></div>`;
                 renderBadges('latest-draw-numbers', ultimoSorteio, 'bg-drawn');
 
-                // Processar Estatísticas dos 50 jogos (Quentes, Médias, Frias e Ciclo)
-                if (historicoCompleto.length >= 2) {
-                    let freq = {};
-                    for(let i=1; i<=25; i++) freq[i] = 0;
-                    
-                    historicoCompleto.forEach(sorteio => {
-                        sorteio.dezenas.forEach(d => { freq[Number(d)]++; });
-                    });
+                // Histórico de 50 jogos processado
+                let freq = {};
+                for(let i=1; i<=25; i++) freq[i] = 0;
+                historicoCompleto.forEach(sorteio => {
+                    sorteio.dezenas.forEach(d => { freq[d]++; });
+                });
 
-                    let ranking = Object.keys(freq).map(num => ({ dezena: Number(num), qtde: freq[num] }));
-                    ranking.sort((a,b) => b.qtde - a.qtde);
+                let ranking = Object.keys(freq).map(num => ({ dezena: Number(num), qtde: freq[num] }));
+                ranking.sort((a,b) => b.qtde - a.qtde);
 
-                    let quentes = ranking.slice(0, 8);
-                    let medias = ranking.slice(8, 17);
-                    let frias = ranking.slice(17, 25);
-
-                    renderBadges('badge-quentes', quentes.map(q => q.dezena), 'bg-hot');
-                    renderBadges('badge-medias', medias.map(m => m.dezena), 'bg-med');
-                    renderBadges('badge-frias', frias.map(f => f.dezena), 'bg-cold');
-
-                    // Cálculo do Ciclo
-                    let encontradas = new Set();
-                    for(let i=0; i<historicoCompleto.length; i++) {
-                        let dzs = historicoCompleto[i].dezenas.map(Number);
-                        dzs.forEach(d => encontradas.add(d));
-                        
-                        if (encontradas.size === 25) {
-                            encontradas.clear();
-                            for(let j=0; j<i; j++) {
-                                historicoCompleto[j].dezenas.map(Number).forEach(d => encontradas.add(d));
-                            }
-                            break;
-                        }
-                    }
-
-                    let faltantesCiclo = [];
-                    if (encontradas.size === 0) {
-                        for(let i=1; i<=25; i++) faltantesCiclo.push(i);
-                    } else {
-                        for(let i=1; i<=25; i++) {
-                            if(!encontradas.has(i)) faltantesCiclo.push(i);
-                        }
-                    }
-                    renderBadges('badge-ciclo', faltantesCiclo, 'bg-cycle');
+                renderBadges('badge-quentes', ranking.slice(0, 8).map(q => q.dezena), 'bg-hot');
+                renderBadges('badge-medias', ranking.slice(8, 17).map(m => m.dezena), 'bg-med');
+                renderBadges('badge-frias', ranking.slice(17, 25).map(f => f.dezena), 'bg-cold');
+                
+                let encontradas = new Set();
+                for(let i=0; i<historicoCompleto.length; i++) {
+                    historicoCompleto[i].dezenas.forEach(d => encontradas.add(d));
+                    if (encontradas.size === 25) break;
                 }
 
+                let faltantesCiclo = [];
+                for(let i=1; i<=25; i++) { if(!encontradas.has(i)) faltantesCiclo.push(i); }
+                renderBadges('badge-ciclo', faltantesCiclo, 'bg-cycle');
+
                 document.getElementById('historico-info').style.display = 'block';
-                statusDiv.innerHTML = `✅ Conectado com Sucesso! Base de dados atualizada.`;
+
+                const dataAtualizacao = new Date();
+                updateTimeDiv.innerHTML = `<strong>Última verificação da tabela:</strong> ${dataAtualizacao.toLocaleDateString('pt-BR')} às ${dataAtualizacao.toLocaleTimeString('pt-BR')}`;
+
+                statusDiv.innerHTML = `✅ Conectado com Sucesso à Tabela Consolidada (${qtdJogos} Jogos)`;
                 statusDiv.className = 'api-status loaded';
 
                 if(selecionadas.length === 15) atualizarEstatisticas();
 
             } catch (err) {
-                statusDiv.innerHTML = `⚠️ Falha temporária na leitura dos resultados. O Gerador Inteligente continuará funcionando com os padrões matemáticos.`;
+                statusDiv.innerHTML = `⚠️ Aguardando a primeira execução do robô para criar a tabela. O Gerador base continuará funcionando.`;
                 statusDiv.className = 'api-status error';
+                topDrawInfo.innerText = "Criando sistema autônomo...";
+                updateTimeDiv.innerText = "Nenhuma tabela detectada ainda.";
             }
         }
 
-        function renderBadges(containerId, arrayNum, cssClass) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            arrayNum.sort((a,b)=>a-b).forEach(num => {
-                let s = document.createElement('span');
-                s.className = 'badge ' + cssClass;
-                s.innerText = num < 10 ? '0'+num : num;
-                container.appendChild(s);
-            });
-        }
-
-        window.onload = inicializarDados;
+        window.onload = carregarDadosDoRobo;
     </script>
 </body>
 </html>
