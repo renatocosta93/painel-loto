@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Motor de Sincronizacao
+      - name: Motor de Sincronizacao de Dados Ricos
         run: |
           cat << 'EOF' > script.js
           process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -22,8 +22,8 @@ jobs:
           async function fetchLoto(concurso = '') {
               const endpoint = concurso ? `/${concurso}` : '';
               const urls = [
-                  `https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`,
                   `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`,
+                  `https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`,
                   `https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil${endpoint}`
               ];
               
@@ -41,11 +41,27 @@ jobs:
                           let num = data.concurso || data.numero;
                           let dezenas = data.dezenas || data.listaDezenas;
                           let dataSorteio = data.data || data.dataApuracao;
+                          
                           if (num && dezenas && dezenas.length === 15) {
+                              let acumulou = data.acumulou || false;
+                              let ganhadores15 = 0;
+                              let premio15 = 0;
+                              
+                              if (data.premiacao && data.premiacao.length > 0) {
+                                  ganhadores15 = data.premiacao[0].vencedores || data.premiacao[0].ganhadores || 0;
+                                  premio15 = data.premiacao[0].premio || data.premiacao[0].valorPremio || 0;
+                              }
+                              
                               return {
                                   concurso: num,
                                   data: dataSorteio,
-                                  dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b)
+                                  dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b),
+                                  acumulou: acumulou,
+                                  ganhadores: ganhadores15,
+                                  premio: premio15,
+                                  proxConcurso: data.proximoConcurso || data.numeroConcursoProximo || (num + 1),
+                                  proxData: data.dataProximoConcurso || data.dataProximoSorteio || "A definir",
+                                  proxPremio: data.valorEstimadoProximoConcurso || data.valorEstimadoProximoSorteio || 0
                               };
                           }
                       }
@@ -55,25 +71,20 @@ jobs:
           }
 
           async function run() {
-              console.log("Acionando modo Reconstrução Auto-Curativa...");
-              
+              console.log("Iniciando varredura com captura de prêmios...");
               let historico = [];
-              try {
-                  if (fs.existsSync('resultados.json')) {
+              if (fs.existsSync('resultados.json')) {
+                  try {
                       let txt = fs.readFileSync('resultados.json', 'utf8');
                       if(txt.trim()) historico = JSON.parse(txt);
-                  }
-              } catch(e) {
-                  console.log("Aviso: arquivo anterior inválido. Uma nova tabela será criada.");
+                  } catch(e) {}
               }
 
               let ultimo = await fetchLoto('');
               if (!ultimo) {
-                  console.log("Erro Crítico: Todas as fontes oficiais bloqueadas no momento.");
+                  console.log("Erro Crítico: Todas as APIs bloqueadas.");
                   process.exit(1);
               }
-              
-              console.log(`Último concurso oficial detectado: ${ultimo.concurso}`);
 
               let mapHist = {};
               for (let j of historico) {
@@ -81,37 +92,29 @@ jobs:
               }
 
               let novaTabela = [];
-              
-              // Reconstrói exatamente 50 jogos olhando a matriz
               for (let i = 0; i < 50; i++) {
                   let alvo = ultimo.concurso - i;
                   if (alvo < 1) break;
                   
-                  if (mapHist[alvo] && mapHist[alvo].dezenas && mapHist[alvo].dezenas.length === 15) {
-                      // Já tem o jogo, só copia
+                  // Injeta os dados ricos sempre no concurso mais recente (posição 0)
+                  if (i === 0) {
+                      novaTabela.push(ultimo);
+                  } else if (mapHist[alvo] && mapHist[alvo].dezenas) {
                       novaTabela.push(mapHist[alvo]);
                   } else {
-                      // Não tem, faz o download do concurso que faltou
-                      console.log(`Sincronizando concurso faltante (${alvo})...`);
                       let draw = await fetchLoto(alvo);
-                      if (draw) {
-                          novaTabela.push(draw);
-                      } else {
-                          console.log(`Aviso: Concurso ${alvo} não encontrado. Pulando.`);
-                      }
-                      await new Promise(r => setTimeout(r, 800)); // Pequena pausa para a Caixa não bloquear o robô
+                      if (draw) novaTabela.push(draw);
+                      await new Promise(r => setTimeout(r, 800));
                   }
               }
 
               if (novaTabela.length > 0) {
                   fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
-                  console.log(`Tabela perfeitamente consolidada com ${novaTabela.length} jogos.`);
+                  console.log(`Sucesso: Atualizado com os dados do concurso ${ultimo.concurso}`);
               } else {
-                  console.log("Erro: Não foi possível construir a tabela.");
                   process.exit(1);
               }
           }
-
           run();
           EOF
           node script.js
@@ -120,5 +123,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json
-          git commit -m "Auto: Tabela consolidada com ultimos 50 jogos" || echo "Sem mudanças"
+          git commit -m "Auto: Tabela atualizada com prêmios e ganhadores" || echo "Sem mudanças"
           git push
