@@ -44,9 +44,8 @@
         .badge-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
         .badge { padding: 6px 10px; border-radius: 8px; font-size: 14px; font-weight: 700; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 4px;}
         .bg-hot { background-color: var(--danger); } .bg-med { background-color: var(--warning); color: #fff; } .bg-cold { background-color: var(--info); } 
-        .bg-drawn { background-color: var(--success); font-size: 15px;}
+        .bg-cycle { background-color: var(--primary); } .bg-drawn { background-color: var(--success); font-size: 15px;}
         
-        /* Nova estilização para os alertas preditivos */
         .badge-pred { background-color: #1e293b; color: white; padding: 8px 12px; border-radius: 8px; display: inline-flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);}
         .badge-pred-num { font-size: 1.3rem; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 10px; margin-right: 10px; font-weight: 700;}
         .badge-pred-info { display: flex; flex-direction: column; font-size: 0.75rem; font-weight: 500; line-height: 1.3;}
@@ -130,6 +129,13 @@
                     <div class="stat-block-desc">Dezenas enfraquecidas. Tiveram poucas aparições recentes.</div>
                     <div class="badge-list" id="badge-frias"></div>
                 </div>
+                
+                <!-- O RETORNO DO CICLO -->
+                <div class="stat-block">
+                    <div class="stat-block-header">🔄 Faltam no Ciclo</div>
+                    <div class="stat-block-desc">Dezenas que ainda não foram sorteadas desde que o ciclo atual iniciou. Use-as para completar seus jogos.</div>
+                    <div class="badge-list" id="badge-ciclo"></div>
+                </div>
 
                 <!-- Alertas Inteligentes Formatados -->
                 <div class="stat-block" style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #fde68a;">
@@ -147,7 +153,6 @@
                 <h2 style="margin-top: 35px;">🗺️ Mapa de Calor (Últimos 10 Sorteios)</h2>
                 <div class="heatmap-wrapper" id="heatmap-container"></div>
                 
-                <!-- Guia de Análise do Heatmap -->
                 <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; color: #475569; border: 1px solid #e2e8f0; line-height: 1.5;">
                     <strong style="color: var(--primary-dark);">💡 Como o Assistente analisa o Mapa:</strong> Cada linha é um concurso. As colunas são as dezenas. <br><br>
                     • <strong>Buracos:</strong> Espaços em branco compridos indicam que uma coluna ou dezena esfriou. Excelente hora para usá-las como surpresa.<br>
@@ -207,7 +212,7 @@
             <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Como usar a Inteligência Preditiva?</h2>
             <p>Além de gerar os jogos automaticamente no Item 3, você pode usar os dados avançados deste painel para montar sua própria aposta com vantagem matemática cruzando os alertas:</p>
             <ul style="margin-left: 20px; margin-bottom: 25px; margin-top: 15px; color: var(--text-muted); font-weight: 500; line-height: 1.6;">
-                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Atraso:</strong> Use os números desse alerta como <strong style="color: #b45309;">FIXOS</strong> na sua aposta. Como eles atingiram ou passaram o limite histórico sem sair, a <i>Taxa de Estouro</i> te mostra a chance real de que eles voltem a ser sorteados imediatamente.</li>
+                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Atraso e Ciclo:</strong> Use os números desses dois painéis como <strong style="color: #b45309;">FIXOS</strong> na sua aposta. Como eles atingiram ou passaram o limite histórico sem sair, a <i>Taxa de Estouro</i> te mostra a chance real de que eles voltem a ser sorteados imediatamente.</li>
                 <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Quebra:</strong> <strong style="color: #1e3a8a;">EVITE</strong> esses números. Se a dezena bateu o teto histórico de vezes consecutivas, a <i>Taxa de Falha</i> te avisa o risco matemático de confiar nela de novo.</li>
                 <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">O Mapa de Calor:</strong> Não confie apenas em números frios e quentes; olhe a grade. O mapa te ajuda a identificar se há grupos inteiros (colunas ou linhas) falhando juntos.</li>
             </ul>
@@ -399,7 +404,6 @@
                 // --- INTELIGÊNCIA MATEMÁTICA ESTATÍSTICA ---
                 let stats = {}; for(let n=1; n<=25; n++) stats[n] = { freq: 0, history: [] };
                 
-                // Montar histórico cronológico do mais antigo para o mais novo
                 for(let i=hist.length-1; i>=0; i--) {
                     for(let n=1; n<=25; n++) {
                         let isDrawn = hist[i].dezenas.includes(n);
@@ -408,14 +412,27 @@
                     }
                 }
 
+                // Cálculo do Ciclo
+                let cicloAtual = new Set();
+                let histRev = [...hist].reverse();
+                for(let s of histRev) {
+                    s.dezenas.forEach(d => cicloAtual.add(d));
+                    if(cicloAtual.size === 25) cicloAtual.clear(); 
+                }
+
                 const renderBadgesBasic = (cid, arr, css) => {
                     const c = document.getElementById(cid); c.innerHTML = '';
                     arr.forEach(item => {
                         let s = document.createElement('span'); s.className = 'badge ' + css;
-                        s.innerHTML = `<span>${item.d < 10 ? '0'+item.d : item.d}</span> <small style="opacity:0.9; font-weight:600; font-size:0.75rem;">(${item.info})</small>`;
+                        s.innerHTML = `<span>${item.d < 10 ? '0'+item.d : item.d}</span>` + (item.info ? ` <small style="opacity:0.9; font-weight:600; font-size:0.75rem;">(${item.info})</small>` : '');
                         c.appendChild(s);
                     });
                 };
+
+                let faltam = [];
+                for(let i=1; i<=25; i++) { if(!cicloAtual.has(i)) faltam.push({d: i, info: ''}); }
+                if(faltam.length > 0) renderBadgesBasic('badge-ciclo', faltam, 'bg-cycle');
+                else document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou!</span>';
                 
                 let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
                 renderBadgesBasic('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
