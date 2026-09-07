@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Sincronização Lotofácil e Telegram
+      - name: Sincronização e Assistente IA
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -22,18 +22,11 @@ jobs:
           process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
           const fs = require('fs');
 
-          function toBRL(valor) {
-              return "R$ " + Number(valor).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-          }
+          function toBRL(valor) { return "R$ " + Number(valor).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
           async function fetchLoto(concurso = '') {
               const endpoint = concurso ? `/${concurso}` : '';
-              const urls = [
-                  `https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`,
-                  `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`,
-                  `https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil${endpoint}`
-              ];
-              
+              const urls = [`https://loterias-api.brchallenges.com/api/lotofacil${endpoint}`, `https://brasilapi.com.br/api/loterias/v1/lotofacil${endpoint}`, `https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil${endpoint}`];
               for (let u of urls) {
                   try {
                       let res = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) });
@@ -41,12 +34,9 @@ jobs:
                           let data = await res.json();
                           let num = data.concurso || data.numero;
                           let dezenas = data.dezenas || data.listaDezenas;
-                          
                           if (num && dezenas && dezenas.length === 15) {
                               let acumulou = data.acumulou || false;
                               let ganhadores15 = 0; let premio15 = 0;
-                              
-                              // Tradutor Universal de Rateio (Blindagem contra APIs diferentes)
                               let premiacaoArray = data.premiacoes || data.premiacao || data.listaRateioPremio || [];
                               if (premiacaoArray.length > 0) {
                                   let p15 = premiacaoArray.find(p => p.acertos === 15 || p.faixa === 1) || premiacaoArray[0];
@@ -56,14 +46,9 @@ jobs:
                                   ganhadores15 = data.quantidadeGanhadores || data.ganhadores || 0;
                                   premio15 = data.valorPremio || data.premio || 0;
                               }
-
                               return {
-                                  concurso: num,
-                                  data: data.data || data.dataApuracao,
-                                  dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b),
-                                  acumulou: acumulou,
-                                  ganhadores: ganhadores15,
-                                  premio: premio15,
+                                  concurso: num, data: data.data || data.dataApuracao, dezenas: (typeof dezenas[0] === 'string' ? dezenas.map(Number) : dezenas).sort((a,b)=>a-b),
+                                  acumulou: acumulou, ganhadores: ganhadores15, premio: premio15,
                                   proxConcurso: data.proximoConcurso || data.numeroConcursoProximo || (num + 1),
                                   proxData: data.dataProximoConcurso || data.dataProximoSorteio || "A definir",
                                   proxPremio: data.valorEstimadoProximoConcurso || data.valorEstimadoProximoSorteio || 0
@@ -71,48 +56,106 @@ jobs:
                           }
                       }
                   } catch (e) {}
-              }
-              return null;
+              } return null;
           }
 
           async function run() {
               let historico = [];
-              if (fs.existsSync('resultados.json')) {
-                  try { historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8')); } catch(e) {}
-              }
+              if (fs.existsSync('resultados.json')) { try { historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8')); } catch(e) {} }
 
-              let ultimo = await fetchLoto('');
-              if (!ultimo) process.exit(1);
-
-              let mapHist = {};
-              for (let j of historico) if (j && j.concurso) mapHist[j.concurso] = j;
+              let ultimo = await fetchLoto(''); if (!ultimo) process.exit(1);
+              let mapHist = {}; for (let j of historico) if (j && j.concurso) mapHist[j.concurso] = j;
 
               let novaTabela = [];
               for (let i = 0; i < 50; i++) {
-                  let alvo = ultimo.concurso - i;
-                  if (alvo < 1) break;
+                  let alvo = ultimo.concurso - i; if (alvo < 1) break;
                   if (i === 0) novaTabela.push(ultimo);
                   else if (mapHist[alvo] && mapHist[alvo].dezenas) novaTabela.push(mapHist[alvo]);
-                  else {
-                      let draw = await fetchLoto(alvo);
-                      if (draw) novaTabela.push(draw);
-                      await new Promise(r => setTimeout(r, 800));
-                  }
+                  else { let draw = await fetchLoto(alvo); if (draw) novaTabela.push(draw); await new Promise(r => setTimeout(r, 800)); }
               }
-
               fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
 
-              // --- INTEGRAÇÃO TELEGRAM ---
-              const token = process.env.TELEGRAM_TOKEN;
-              const chatId = process.env.TELEGRAM_CHAT_ID;
+              // --- ASSISTENTE DE INSIGHTS ESTATÍSTICOS ---
+              let stats = {}; for(let n=1; n<=25; n++) stats[n] = { history: [] };
+              for(let i=0; i<novaTabela.length; i++) {
+                  for(let n=1; n<=25; n++) { stats[n].history.push(novaTabela[i].dezenas.includes(n)); }
+              }
               
+              let atrasosForte = []; let quebrasForte = [];
+              for(let n=1; n<=25; n++) {
+                  stats[n].history.reverse(); // Do mais antigo pro mais novo
+                  let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
+                  for(let j=0; j<stats[n].history.length; j++) {
+                      if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
+                      else { aSeq++; cSeq = 0; if(aSeq > mAbs) mAbs = aSeq; }
+                  }
+                  
+                  let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
+                  let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
+                  
+                  if(curA > 0 && curA >= mAbs - 1 && curA >= 2) {
+                      let total = 0; let hits = 0; let temp = 0;
+                      for(let j=0; j<stats[n].history.length - 1; j++) {
+                          if(!stats[n].history[j]) temp++; else temp = 0;
+                          if(temp === curA) { total++; if(stats[n].history[j+1]) hits++; }
+                      }
+                      let taxa = total > 0 ? Math.round((hits/total)*100) : 100;
+                      atrasosForte.push({d: n, val: curA, max: mAbs, taxa: taxa});
+                  }
+                  
+                  if(curC >= mCons - 1 && curC >= 3) {
+                      let total = 0; let fails = 0; let temp = 0;
+                      for(let j=0; j<stats[n].history.length - 1; j++) {
+                          if(stats[n].history[j]) temp++; else temp = 0;
+                          if(temp === curC) { total++; if(!stats[n].history[j+1]) fails++; }
+                      }
+                      let taxa = total > 0 ? Math.round((fails/total)*100) : 100;
+                      quebrasForte.push({d: n, val: curC, max: mCons, taxa: taxa});
+                  }
+              }
+              atrasosForte.sort((a,b) => b.taxa - a.taxa); quebrasForte.sort((a,b) => b.taxa - a.taxa);
+
+              // Análise do Mapa de Calor (Últimos 10 jogos)
+              let hmStats = { l1:0, l2:0, l3:0, l4:0, l5:0 }; let numFreq10 = {}; for(let i=1; i<=25; i++) numFreq10[i] = 0;
+              for(let i=0; i<10; i++) {
+                  if(!novaTabela[i]) break;
+                  novaTabela[i].dezenas.forEach(d => {
+                      numFreq10[d]++;
+                      if(d<=5) hmStats.l1++; else if(d<=10) hmStats.l2++; else if(d<=15) hmStats.l3++; else if(d<=20) hmStats.l4++; else hmStats.l5++;
+                  });
+              }
+              let linhas = [
+                  {name: 'Linha 1 (01-05)', val: hmStats.l1}, {name: 'Linha 2 (06-10)', val: hmStats.l2},
+                  {name: 'Linha 3 (11-15)', val: hmStats.l3}, {name: 'Linha 4 (16-20)', val: hmStats.l4}, {name: 'Linha 5 (21-25)', val: hmStats.l5}
+              ];
+              linhas.sort((a,b) => b.val - a.val);
+              let lForte = linhas[0]; let lFraca = linhas[4];
+              let frias10 = []; let quentes10 = [];
+              for(let i=1; i<=25; i++) { if(numFreq10[i] >= 8) quentes10.push(i); if(numFreq10[i] <= 2) frias10.push(i); }
+
+              let insight = `\n🤖 *INSIGHT DO ASSISTENTE PREDITIVO*\n`;
+              if(atrasosForte.length > 0) {
+                  let bA = atrasosForte[0];
+                  insight += `🎯 *Forte para Fixar:* A dezena *${bA.d < 10 ? '0'+bA.d : bA.d}* atingiu ${bA.val} concursos de atraso. Historicamente, ela possui *${bA.taxa}%* de taxa de estouro (retorno) quando chega nesse limite.\n`;
+              } else { insight += `🎯 *Fixar:* Não há dezenas em atraso crítico extremo hoje.\n`; }
+
+              if(quebrasForte.length > 0) {
+                  let bQ = quebrasForte[0];
+                  insight += `🛑 *Alerta de Quebra:* A dezena *${bQ.d < 10 ? '0'+bQ.d : bQ.d}* já saiu ${bQ.val} vezes seguidas. Ela tem *${bQ.taxa}%* de probabilidade matemática de falhar hoje.\n`;
+              } else { insight += `🛑 *Evitar:* Nenhuma dezena atingiu o teto de repetições consecutivas.\n`; }
+
+              insight += `\n🗺️ *Análise do Mapa de Calor (Últimos 10 jogos):*\n`;
+              insight += `• *Concentração:* A ${lForte.name} está pegando fogo 🔥 com ${lForte.val} aparições recentes. É a linha mais forte do momento.\n`;
+              insight += `• *Buraco na Grade:* A ${lFraca.name} esfriou drasticamente ❄️ (${lFraca.val} aparições). Reduza as dezenas desta linha.\n`;
+              if(quentes10.length > 0) insight += `• *Torres Fortes:* As dezenas ${quentes10.map(n => n<10?'0'+n:n).join(', ')} não param de sair.\n`;
+              if(frias10.length > 0) insight += `• *Sumiço Total:* As dezenas ${frias10.map(n => n<10?'0'+n:n).join(', ')} estão criando buracos no mapa.\n`;
+
+              // --- ENVIO TELEGRAM ---
+              const token = process.env.TELEGRAM_TOKEN; const chatId = process.env.TELEGRAM_CHAT_ID;
               if (token && chatId) {
                   let msgIdFile = 'telegram_msg_id.txt';
                   let oldMsgId = fs.existsSync(msgIdFile) ? fs.readFileSync(msgIdFile, 'utf8').trim() : null;
-
-                  if (oldMsgId) {
-                      try { await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${oldMsgId}`); } catch(e) {}
-                  }
+                  if (oldMsgId) try { await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${oldMsgId}`); } catch(e) {}
 
                   const d = new Date(); d.setHours(d.getHours() - 3);
                   const dataAtual = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear() + ' às ' + ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
@@ -124,26 +167,15 @@ jobs:
 
                   let dezenasFormatadas = ultimo.dezenas.map(n => n < 10 ? '0'+n : n).join(' - ');
 
-                  let texto = `🍀 *Painel Lotofácil Atualizado*\n` +
-                              `🔄 *Última Atualização:* ${dataAtual}\n\n` +
-                              `🏆 *Último Sorteio:* Concurso ${ultimo.concurso} (${ultimo.data})\n` +
-                              `🔢 *Dezenas:* ${dezenasFormatadas}\n` +
-                              `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n` +
-                              `💰 *Prêmio:* ${ultimo.premio ? toBRL(ultimo.premio) : 'Apurando...'}\n\n` +
-                              `🔮 *Próximo Sorteio:* Concurso ${ultimo.proxConcurso} (${ultimo.proxData})\n` +
-                              `⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n\n` +
-                              `✅ *Base de Dados (50 Jogos):*\n` +
-                              `⏮️ Mais antigo: ${novaTabela[novaTabela.length-1].concurso} (${novaTabela[novaTabela.length-1].data})\n` +
-                              `🆕 Mais recente: ${ultimo.concurso} (${ultimo.data})\n\n` +
-                              `🔗 *Acesse seu painel:* https://renatocosta93.github.io/painel-loto/\n` +
-                              `🏦 *Fonte Oficial:* [Caixa Econômica](https://loterias.caixa.gov.br/Paginas/Lotofacil.aspx)`;
+                  let texto = `🍀 *Painel Lotofácil Atualizado*\n🔄 *Última Atualização:* ${dataAtual}\n\n` +
+                              `🏆 *Último Sorteio:* ${ultimo.concurso} (${ultimo.data})\n🔢 *Dezenas:* ${dezenasFormatadas}\n` +
+                              `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n💰 *Prêmio:* ${ultimo.premio ? toBRL(ultimo.premio) : 'Apurando...'}\n\n` +
+                              `🔮 *Próximo Sorteio:* ${ultimo.proxConcurso} (${ultimo.proxData})\n⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n` +
+                              `${insight}\n` +
+                              `🔗 *Acesse seu painel:* https://renatocosta93.github.io/painel-loto/`;
 
                   try {
-                      let resBot = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                          method: 'POST',
-                          headers: {'Content-Type': 'application/json'},
-                          body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true })
-                      });
+                      let resBot = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true }) });
                       let botData = await resBot.json();
                       if (botData.ok) fs.writeFileSync(msgIdFile, botData.result.message_id.toString());
                   } catch(e) {}
@@ -152,10 +184,10 @@ jobs:
           run();
           EOF
           node script.js
-      - name: Publicar Tabela e ID do Telegram
+      - name: Publicar
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Tabela e Telegram atualizados" || echo "Sem mudanças"
+          git commit -m "Auto: Dados e Telegram" || echo "Sem mudanças"
           git push
