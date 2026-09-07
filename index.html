@@ -33,17 +33,27 @@
         
         .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
         .stat-label { font-weight: 600; color: var(--text-muted); }
-        .stat-value { font-weight: 700; padding: 4px 12px; border-radius: 20px; background: #f1f5f9; color: var(--text-main); }
+        .stat-value { font-weight: 700; padding: 4px 12px; border-radius: 20px; background: #f1f5f9; color: var(--text-main); text-align: right;}
         .status-ok { background: var(--success); color: white; }
         .status-bad { background: var(--danger); color: white; }
         
-        .badge-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .badge { padding: 6px 10px; border-radius: 8px; font-size: 14px; font-weight: 700; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px;}
-        .bg-hot { background-color: var(--danger); } .bg-med { background-color: var(--warning); color: #fff; } .bg-cold { background-color: var(--info); } .bg-cycle { background-color: var(--primary); }
-        .bg-alert { background-color: #64748b; } .bg-drawn { background-color: var(--success); font-size: 15px;}
+        .stat-block { padding: 16px 0; border-bottom: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px;}
+        .stat-block-header { font-weight: 700; color: var(--text-main); font-size: 1.05rem; }
+        .stat-block-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
 
-        /* Heatmap Styles */
-        .heatmap-wrapper { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .badge-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+        .badge { padding: 6px 10px; border-radius: 8px; font-size: 14px; font-weight: 700; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 4px;}
+        .bg-hot { background-color: var(--danger); } .bg-med { background-color: var(--warning); color: #fff; } .bg-cold { background-color: var(--info); } 
+        .bg-drawn { background-color: var(--success); font-size: 15px;}
+        
+        /* Nova estilização para os alertas preditivos */
+        .badge-pred { background-color: #1e293b; color: white; padding: 8px 12px; border-radius: 8px; display: inline-flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.15);}
+        .badge-pred-num { font-size: 1.3rem; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 10px; margin-right: 10px; font-weight: 700;}
+        .badge-pred-info { display: flex; flex-direction: column; font-size: 0.75rem; font-weight: 500; line-height: 1.3;}
+        .text-estouro { color: #fde047; font-weight: 700; font-size: 0.85rem;}
+        .text-falha { color: #fca5a5; font-weight: 700; font-size: 0.85rem;}
+
+        .heatmap-wrapper { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #e2e8f0; -webkit-overflow-scrolling: touch; }
         .heatmap-table { border-collapse: collapse; width: 100%; min-width: 650px; font-size: 0.8rem; }
         .heatmap-table th { background: #f8fafc; padding: 8px 4px; border: 1px solid #e2e8f0; color: var(--primary-dark); }
         .heatmap-table td { border: 1px solid #e2e8f0; padding: 6px 2px; text-align: center; }
@@ -74,7 +84,11 @@
         .bolao-results { background: #f8fafc; padding: 20px; border-radius: 12px; margin-top: 20px; display: none; border: 1px solid #e2e8f0; }
         .bolao-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 500;}
         
-        @media (max-width: 600px) { .multi-gen input, .multi-gen button, .btn { width: 100%; } .dezena { width: 44px; height: 44px; font-size: 16px; } }
+        @media (max-width: 600px) { 
+            body { padding: 10px; } .panel { padding: 15px; } .multi-gen input, .multi-gen button, .btn { width: 100%; } 
+            .dezena { width: 42px; height: 42px; font-size: 16px; } .stat-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .stat-value { align-self: flex-start; } .heatmap-table { font-size: 0.75rem; }
+        }
         #export-canvas-container { position: absolute; top: -9999px; left: -9999px; background: white; padding: 20px; width: 400px; font-family: 'Inter', sans-serif; }
     </style>
 </head>
@@ -95,30 +109,51 @@
                 <div class="latest-draw-container" id="latest-draw-container"></div>
                 
                 <h2>🧠 Inteligência Individual das Dezenas (50 Jogos)</h2>
-                <div class="stat-item"><span class="stat-label">🔥 Quentes (Top 8):</span><div class="badge-list" id="badge-quentes"></div></div>
-                <div class="stat-item"><span class="stat-label">⚡ Médias (9):</span><div class="badge-list" id="badge-medias"></div></div>
-                <div class="stat-item"><span class="stat-label">❄️ Frias (Menos saem):</span><div class="badge-list" id="badge-frias"></div></div>
+                <div class="stat-block-desc" style="margin-bottom: 15px; color: var(--primary-dark); font-weight: 600; padding: 10px; background: #f8fafc; border-radius: 8px;">
+                    💡 O número pequeno entre parênteses "()" mostra quantas vezes a dezena saiu nos últimos 50 jogos.
+                </div>
+
+                <div class="stat-block">
+                    <div class="stat-block-header">🔥 Quentes (Top 8)</div>
+                    <div class="stat-block-desc">As favoritas do momento. Possuem as maiores frequências da tabela.</div>
+                    <div class="badge-list" id="badge-quentes"></div>
+                </div>
                 
-                <!-- Novos Alertas Inteligentes baseados no código Python -->
-                <div class="stat-item" style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <div>
-                        <div style="font-weight: 700; color: #b45309; margin-bottom: 5px;">🚨 Alerta de Atraso (Ausência Crítica)</div>
-                        <div style="font-size: 0.85rem; color: #78350f; margin-bottom: 10px;">Dezenas que atingiram (ou passaram) o seu limite histórico de sumiço. Alta chance de estouro.</div>
-                        <div class="badge-list" id="badge-atrasos"></div>
-                    </div>
+                <div class="stat-block">
+                    <div class="stat-block-header">⚡ Médias (9)</div>
+                    <div class="stat-block-desc">Dezenas com comportamento equilibrado. Estão no ritmo normal de sorteios.</div>
+                    <div class="badge-list" id="badge-medias"></div>
                 </div>
 
-                <div class="stat-item" style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <div>
-                        <div style="font-weight: 700; color: #1e3a8a; margin-bottom: 5px;">🛑 Alerta de Quebra (Excesso Consecutivo)</div>
-                        <div style="font-size: 0.85rem; color: #1e40af; margin-bottom: 10px;">Dezenas saindo sem parar que atingiram seu teto máximo. Alta chance de falharem no próximo.</div>
-                        <div class="badge-list" id="badge-quebras"></div>
-                    </div>
+                <div class="stat-block">
+                    <div class="stat-block-header">❄️ Frias (Menos saem)</div>
+                    <div class="stat-block-desc">Dezenas enfraquecidas. Tiveram poucas aparições recentes.</div>
+                    <div class="badge-list" id="badge-frias"></div>
                 </div>
 
-                <h2 style="margin-top: 30px;">🗺️ Mapa de Calor (Últimos 10 Sorteios)</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Visualize tendências de colunas e linhas sumindo ou se repetindo.</p>
+                <!-- Alertas Inteligentes Formatados -->
+                <div class="stat-block" style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #fde68a;">
+                    <div class="stat-block-header" style="color: #b45309;">🚨 Alerta de Atraso (Ausência Crítica)</div>
+                    <div class="stat-block-desc" style="color: #78350f; margin-bottom: 10px;">Dezenas que atingiram o limite histórico sem sair. A <strong>Taxa de Estouro</strong> mostra a probabilidade histórica dessa dezena retornar logo no próximo concurso após bater esse limite.</div>
+                    <div class="badge-list" id="badge-atrasos"></div>
+                </div>
+
+                <div class="stat-block" style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #bfdbfe;">
+                    <div class="stat-block-header" style="color: #1e3a8a;">🛑 Alerta de Quebra (Excesso Consecutivo)</div>
+                    <div class="stat-block-desc" style="color: #1e40af; margin-bottom: 10px;">Dezenas saindo sem parar que atingiram o teto histórico. A <strong>Taxa de Falha</strong> indica a probabilidade matemática de que essa dezena perca a força e não saia no próximo jogo.</div>
+                    <div class="badge-list" id="badge-quebras"></div>
+                </div>
+
+                <h2 style="margin-top: 35px;">🗺️ Mapa de Calor (Últimos 10 Sorteios)</h2>
                 <div class="heatmap-wrapper" id="heatmap-container"></div>
+                
+                <!-- Guia de Análise do Heatmap -->
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; color: #475569; border: 1px solid #e2e8f0; line-height: 1.5;">
+                    <strong style="color: var(--primary-dark);">💡 Como o Assistente analisa o Mapa:</strong> Cada linha é um concurso. As colunas são as dezenas. <br><br>
+                    • <strong>Buracos:</strong> Espaços em branco compridos indicam que uma coluna ou dezena esfriou. Excelente hora para usá-las como surpresa.<br>
+                    • <strong>Torres:</strong> Colunas preenchidas com "X" sem interrupções mostram dezenas superaquecidas. Cuidado com quebras iminentes.<br>
+                    • <strong>Linhas Fortes:</strong> Ao analisar o mapa horizontalmente, você notará facilmente se o sorteio está concentrando os prêmios mais no começo (01-10) ou no final (15-25) da cartela.
+                </div>
             </div>
         </div>
 
@@ -132,8 +167,8 @@
             </div>
             <div class="btn-group"><button class="btn btn-warning" onclick="adicionarAoBolao()">➕ Adicionar ao Bolão</button></div>
             <div class="btn-group">
-                <button class="btn btn-success" onclick="enviarWhatsAppUnicoTexto()">📱 WhatsApp Texto</button>
-                <button class="btn btn-info" onclick="enviarWhatsAppUnicoImagem()">🖼️ WhatsApp Imagem</button>
+                <button class="btn btn-success" onclick="enviarWhatsAppUnicoTexto()">📱 WhatsApp (Texto)</button>
+                <button class="btn btn-info" onclick="enviarWhatsAppUnicoImagem()">🖼️ WhatsApp (Imagem)</button>
             </div>
         </div>
 
@@ -153,11 +188,11 @@
         </div>
 
         <div class="panel panel-full">
-            <h2>📂 3. Central de Bolão Automático</h2>
+            <h2>📂 3. Central de Bolão</h2>
             <div class="multi-gen">
                 <label style="font-weight: 600; color: var(--text-muted);">Qtd:</label>
                 <input type="number" id="qtd-jogos" value="5" min="1" max="100">
-                <button class="btn btn-primary" style="flex: 2;" onclick="gerarMultiplos()">🤖 Gerar em Massa</button>
+                <button class="btn btn-primary" style="flex: 2;" onclick="gerarMultiplos()">🤖 Gerar Automático</button>
                 <button class="btn btn-secondary" style="flex: 2;" onclick="avaliarBolaoHTML()">📊 Avaliar Bolão</button>
             </div>
             <textarea id="txt-jogos" placeholder="Os jogos do seu bolão irão se acumular aqui..."></textarea>
@@ -169,12 +204,19 @@
         </div>
         
         <div class="panel panel-full" style="text-align: justify; font-size: 15px; color: var(--text-main);">
-            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Como este painel escolhe os números?</h2>
-            <p>Os sorteios da loteria são aleatórios, mas a matemática nos mostra que existem <strong>padrões que se repetem com muita frequência</strong>. Este painel funciona como um filtro inteligente que avalia combinações em um segundo e só deixa passar para você os jogos com maior probabilidade histórica, respeitando:</p>
+            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Como usar a Inteligência Preditiva?</h2>
+            <p>Além de gerar os jogos automaticamente no Item 3, você pode usar os dados avançados deste painel para montar sua própria aposta com vantagem matemática cruzando os alertas:</p>
+            <ul style="margin-left: 20px; margin-bottom: 25px; margin-top: 15px; color: var(--text-muted); font-weight: 500; line-height: 1.6;">
+                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Atraso:</strong> Use os números desse alerta como <strong style="color: #b45309;">FIXOS</strong> na sua aposta. Como eles atingiram ou passaram o limite histórico sem sair, a <i>Taxa de Estouro</i> te mostra a chance real de que eles voltem a ser sorteados imediatamente.</li>
+                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Quebra:</strong> <strong style="color: #1e3a8a;">EVITE</strong> esses números. Se a dezena bateu o teto histórico de vezes consecutivas, a <i>Taxa de Falha</i> te avisa o risco matemático de confiar nela de novo.</li>
+                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">O Mapa de Calor:</strong> Não confie apenas em números frios e quentes; olhe a grade. O mapa te ajuda a identificar se há grupos inteiros (colunas ou linhas) falhando juntos.</li>
+            </ul>
+
+            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Regras Estruturais (Filtro Global)</h2>
+            <p>Quando você aperta o botão "Gerar Jogo Ideal", nosso filtro autônomo obriga que a combinação respeite os padrões que mais saem na história:</p>
             <ul style="margin-left: 20px; margin-bottom: 25px; margin-top: 15px; color: var(--text-muted); font-weight: 500;">
                 <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Equilíbrio Par/Ímpar e Moldura:</strong> Mantém a média de 7/8 ou 8/7 e a borda ideal.</li>
-                <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Soma e Sequência Controladas:</strong> Trava sequências longas e mantém a soma (180-220).</li>
-                <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Inteligência Individual:</strong> Analisamos o comportamento de atraso histórico, quebras consecutivas e a exata frequência de cada dezena, aplicando os conceitos de regressão à média (estatística).</li>
+                <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Soma e Sequência Controladas:</strong> Trava "carrinhos" muito longos (como 1,2,3,4,5,6) e mantém a soma média entre 180-220.</li>
             </ul>
         </div>
     </div>
@@ -354,58 +396,83 @@
                 let htmlAtual = `<div class="draw-info-box" style="border-left-color: var(--success);"><h3 style="color: var(--success);">🏆 Último Sorteio (${r.concurso})</h3><div class="draw-details"><strong>Data:</strong> ${r.data}</div><div class="draw-details"><strong>Situação:</strong> ${textoGanhadores}</div><div style="margin-top: 15px; font-weight: 700; color: var(--text-muted); font-size:0.9rem;">Dezenas Sorteadas:</div><div class="badge-list" id="latest-draw-numbers" style="margin-top: 6px;"></div></div>`;
                 document.getElementById('latest-draw-container').innerHTML = htmlProximo + htmlAtual;
                 
-                // --- INTELIGÊNCIA MATEMÁTICA ---
-                // Frequências, Atrasos e Sequências
-                let stats = {}; for(let i=1; i<=25; i++) stats[i] = { freq: 0, cAbs: 0, mAbs: 0, cCons: 0, mCons: 0 };
+                // --- INTELIGÊNCIA MATEMÁTICA ESTATÍSTICA ---
+                let stats = {}; for(let n=1; n<=25; n++) stats[n] = { freq: 0, history: [] };
                 
-                for(let i=1; i<=25; i++) {
-                    let aSeq = 0, cSeq = 0, isCurAbs = true, isCurCons = true;
-                    for(let j=0; j<hist.length; j++) {
-                        let drawn = hist[j].dezenas.includes(i);
-                        if(drawn) stats[i].freq++;
-                        
-                        if(!drawn) {
-                            aSeq++; if(isCurAbs) stats[i].cAbs++;
-                            if(aSeq > stats[i].mAbs) stats[i].mAbs = aSeq;
-                        } else { aSeq = 0; isCurAbs = false; }
-                        
-                        if(drawn) {
-                            cSeq++; if(isCurCons) stats[i].cCons++;
-                            if(cSeq > stats[i].mCons) stats[i].mCons = cSeq;
-                        } else { cSeq = 0; isCurCons = false; }
+                // Montar histórico cronológico do mais antigo para o mais novo
+                for(let i=hist.length-1; i>=0; i--) {
+                    for(let n=1; n<=25; n++) {
+                        let isDrawn = hist[i].dezenas.includes(n);
+                        if(isDrawn) stats[n].freq++;
+                        stats[n].history.push(isDrawn);
                     }
                 }
 
-                const renderBadgesAdv = (cid, arr, css) => {
+                const renderBadgesBasic = (cid, arr, css) => {
                     const c = document.getElementById(cid); c.innerHTML = '';
                     arr.forEach(item => {
                         let s = document.createElement('span'); s.className = 'badge ' + css;
-                        s.innerHTML = `${item.d < 10 ? '0'+item.d : item.d} <small style="opacity:0.85; font-weight:500;">(${item.info})</small>`;
+                        s.innerHTML = `<span>${item.d < 10 ? '0'+item.d : item.d}</span> <small style="opacity:0.9; font-weight:600; font-size:0.75rem;">(${item.info})</small>`;
                         c.appendChild(s);
                     });
                 };
                 
-                // Sort categories
                 let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
-                renderBadgesAdv('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
-                renderBadgesAdv('badge-quentes', ranking.slice(0, 8).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-hot');
-                renderBadgesAdv('badge-medias', ranking.slice(8, 17).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-med');
-                renderBadgesAdv('badge-frias', ranking.slice(17, 25).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-cold');
+                renderBadgesBasic('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
+                renderBadgesBasic('badge-quentes', ranking.slice(0, 8).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-hot');
+                renderBadgesBasic('badge-medias', ranking.slice(8, 17).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-med');
+                renderBadgesBasic('badge-frias', ranking.slice(17, 25).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-cold');
                 
-                // Alertas de Atraso e Quebra
                 let atrasos = []; let quebras = [];
-                for(let i=1; i<=25; i++) {
-                    if (stats[i].cAbs >= stats[i].mAbs - 1 && stats[i].cAbs >= 2) atrasos.push({d: i, info: `Atraso: ${stats[i].cAbs}`});
-                    if (stats[i].cCons >= stats[i].mCons - 1 && stats[i].cCons >= 3) quebras.push({d: i, info: `Seq: ${stats[i].cCons}`});
+                for(let n=1; n<=25; n++) {
+                    let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
+                    for(let j=0; j<stats[n].history.length; j++) {
+                        if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
+                        else { aSeq++; cSeq = 0; if(aSeq > mAbs) mAbs = aSeq; }
+                    }
+                    
+                    let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
+                    let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
+                    
+                    if(curA >= mAbs - 1 && curA >= 2) {
+                        let total = 0; let hits = 0; let temp = 0;
+                        for(let j=0; j<stats[n].history.length - 1; j++) {
+                            if(!stats[n].history[j]) temp++; else temp = 0;
+                            if(temp === curA) { total++; if(stats[n].history[j+1]) hits++; }
+                        }
+                        let taxa = total > 0 ? Math.round((hits/total)*100) : 100;
+                        atrasos.push({d: n, curA: curA, mAbs: mAbs, taxa: taxa});
+                    }
+                    
+                    if(curC >= mCons - 1 && curC >= 3) {
+                        let total = 0; let fails = 0; let temp = 0;
+                        for(let j=0; j<stats[n].history.length - 1; j++) {
+                            if(stats[n].history[j]) temp++; else temp = 0;
+                            if(temp === curC) { total++; if(!stats[n].history[j+1]) fails++; }
+                        }
+                        let taxa = total > 0 ? Math.round((fails/total)*100) : 100;
+                        quebras.push({d: n, curC: curC, mCons: mCons, taxa: taxa});
+                    }
                 }
                 
-                if (atrasos.length > 0) renderBadgesAdv('badge-atrasos', atrasos, 'bg-alert');
-                else document.getElementById('badge-atrasos').innerHTML = '<span style="font-size:0.9rem; color:#78350f;">Nenhuma dezena em atraso crítico no momento.</span>';
+                const cAtrasos = document.getElementById('badge-atrasos'); cAtrasos.innerHTML = '';
+                if(atrasos.length > 0) {
+                    atrasos.sort((a,b) => b.taxa - a.taxa).forEach(item => {
+                        let s = document.createElement('div'); s.className = 'badge-pred';
+                        s.innerHTML = `<div class="badge-pred-num">${item.d < 10 ? '0'+item.d : item.d}</div><div class="badge-pred-info"><span>Atual: ${item.curA} | Máx: ${item.mAbs}</span><span class="text-estouro">Estouro: ${item.taxa}%</span></div>`;
+                        cAtrasos.appendChild(s);
+                    });
+                } else cAtrasos.innerHTML = '<span style="font-size:0.9rem; color:#78350f;">Nenhuma dezena em atraso crítico extremo.</span>';
                 
-                if (quebras.length > 0) renderBadgesAdv('badge-quebras', quebras, 'bg-alert');
-                else document.getElementById('badge-quebras').innerHTML = '<span style="font-size:0.9rem; color:#1e40af;">Nenhuma sequência crítica no momento.</span>';
+                const cQuebras = document.getElementById('badge-quebras'); cQuebras.innerHTML = '';
+                if(quebras.length > 0) {
+                    quebras.sort((a,b) => b.taxa - a.taxa).forEach(item => {
+                        let s = document.createElement('div'); s.className = 'badge-pred';
+                        s.innerHTML = `<div class="badge-pred-num">${item.d < 10 ? '0'+item.d : item.d}</div><div class="badge-pred-info"><span>Atual: ${item.curC} | Máx: ${item.mCons}</span><span class="text-falha">Falha: ${item.taxa}%</span></div>`;
+                        cQuebras.appendChild(s);
+                    });
+                } else cQuebras.innerHTML = '<span style="font-size:0.9rem; color:#1e40af;">Nenhuma sequência crítica no momento.</span>';
 
-                // Heatmap das últimas 10
                 let htmlHM = `<table class="heatmap-table"><thead><tr><th>Conc.</th>`;
                 for(let i=1; i<=25; i++) htmlHM += `<th>${i < 10 ? '0'+i : i}</th>`;
                 htmlHM += `</tr></thead><tbody>`;
