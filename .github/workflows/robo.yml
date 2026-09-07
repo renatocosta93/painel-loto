@@ -76,14 +76,29 @@ jobs:
               fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
 
               // --- ASSISTENTE DE INSIGHTS ESTATÍSTICOS ---
-              let stats = {}; for(let n=1; n<=25; n++) stats[n] = { history: [] };
+              let stats = {}; for(let n=1; n<=25; n++) stats[n] = { history: [], freq: 0 };
               for(let i=0; i<novaTabela.length; i++) {
-                  for(let n=1; n<=25; n++) { stats[n].history.push(novaTabela[i].dezenas.includes(n)); }
+                  for(let n=1; n<=25; n++) { 
+                      let drawn = novaTabela[i].dezenas.includes(n);
+                      stats[n].history.push(drawn);
+                      if(drawn) stats[n].freq++;
+                  }
               }
               
+              // Lógica de Ciclo
+              let histRev = [...novaTabela].reverse();
+              let cicloAtual = new Set();
+              for(let s of histRev) {
+                  s.dezenas.forEach(d => cicloAtual.add(d));
+                  if(cicloAtual.size === 25) cicloAtual.clear(); // Resetou o ciclo
+              }
+              let faltamCiclo = [];
+              for(let i=1; i<=25; i++) { if(!cicloAtual.has(i)) faltamCiclo.push(i); }
+
+              // Atrasos e Quebras
               let atrasosForte = []; let quebrasForte = [];
               for(let n=1; n<=25; n++) {
-                  stats[n].history.reverse(); // Do mais antigo pro mais novo
+                  stats[n].history.reverse(); 
                   let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
                   for(let j=0; j<stats[n].history.length; j++) {
                       if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
@@ -93,7 +108,7 @@ jobs:
                   let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
                   let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
                   
-                  if(curA > 0 && curA >= mAbs - 1 && curA >= 2) {
+                  if(curA >= mAbs - 1 && curA >= 2) {
                       let total = 0; let hits = 0; let temp = 0;
                       for(let j=0; j<stats[n].history.length - 1; j++) {
                           if(!stats[n].history[j]) temp++; else temp = 0;
@@ -115,40 +130,50 @@ jobs:
               }
               atrasosForte.sort((a,b) => b.taxa - a.taxa); quebrasForte.sort((a,b) => b.taxa - a.taxa);
 
-              // Análise do Mapa de Calor (Últimos 10 jogos)
-              let hmStats = { l1:0, l2:0, l3:0, l4:0, l5:0 }; let numFreq10 = {}; for(let i=1; i<=25; i++) numFreq10[i] = 0;
+              // Gerador do Palpite Ideal
+              let palpite = new Set();
+              atrasosForte.forEach(a => palpite.add(a.d));
+              faltamCiclo.forEach(c => { if(palpite.size < 15 && !quebrasForte.some(q=>q.d===c)) palpite.add(c); });
+              let rankingDezenas = Object.keys(stats).map(n => ({d: Number(n), freq: stats[n].freq})).sort((a,b) => b.freq - a.freq).map(r=>r.d);
+              for(let n of rankingDezenas) {
+                  if(palpite.size >= 15) break;
+                  if(!quebrasForte.some(q=>q.d===n)) palpite.add(n);
+              }
+              let palpiteStr = Array.from(palpite).sort((a,b)=>a-b).map(n=>n<10?'0'+n:n).join(' ');
+
+              // Análise do Mapa de Calor (Últimos 10)
+              let hmStats = { l1:0, l2:0, l3:0, l4:0, l5:0 }; 
               for(let i=0; i<10; i++) {
                   if(!novaTabela[i]) break;
                   novaTabela[i].dezenas.forEach(d => {
-                      numFreq10[d]++;
                       if(d<=5) hmStats.l1++; else if(d<=10) hmStats.l2++; else if(d<=15) hmStats.l3++; else if(d<=20) hmStats.l4++; else hmStats.l5++;
                   });
               }
               let linhas = [
-                  {name: 'Linha 1 (01-05)', val: hmStats.l1}, {name: 'Linha 2 (06-10)', val: hmStats.l2},
-                  {name: 'Linha 3 (11-15)', val: hmStats.l3}, {name: 'Linha 4 (16-20)', val: hmStats.l4}, {name: 'Linha 5 (21-25)', val: hmStats.l5}
+                  {n: 'Linha 1 (01 ao 05)', v: hmStats.l1}, {n: 'Linha 2 (06 ao 10)', v: hmStats.l2},
+                  {n: 'Linha 3 (11 ao 15)', v: hmStats.l3}, {n: 'Linha 4 (16 ao 20)', v: hmStats.l4}, {n: 'Linha 5 (21 ao 25)', v: hmStats.l5}
               ];
-              linhas.sort((a,b) => b.val - a.val);
-              let lForte = linhas[0]; let lFraca = linhas[4];
-              let frias10 = []; let quentes10 = [];
-              for(let i=1; i<=25; i++) { if(numFreq10[i] >= 8) quentes10.push(i); if(numFreq10[i] <= 2) frias10.push(i); }
+              linhas.sort((a,b) => b.v - a.v); let lForte = linhas[0]; let lFraca = linhas[4];
 
-              let insight = `\n🤖 *INSIGHT DO ASSISTENTE PREDITIVO*\n`;
+              // Montando o texto do Assistente
+              let insight = `🤖 *Análise do Assistente Preditivo:*\n_Hoje o cenário está muito claro. Aqui vai a minha leitura cruzando os 50 jogos:_\n\n`;
+              
               if(atrasosForte.length > 0) {
-                  let bA = atrasosForte[0];
-                  insight += `🎯 *Forte para Fixar:* A dezena *${bA.d < 10 ? '0'+bA.d : bA.d}* atingiu ${bA.val} concursos de atraso. Historicamente, ela possui *${bA.taxa}%* de taxa de estouro (retorno) quando chega nesse limite.\n`;
-              } else { insight += `🎯 *Fixar:* Não há dezenas em atraso crítico extremo hoje.\n`; }
+                  let bA = atrasosForte[0]; let dzA = bA.d < 10 ? '0'+bA.d : bA.d;
+                  insight += `• *Para Fixar:* A dezena *${dzA}* sumiu e atingiu seu limite de atraso. A chance matemática dela "estourar" hoje é de *${bA.taxa}%*.\n`;
+              } else { insight += `• *Para Fixar:* Não temos anomalias de atraso extremo hoje.\n`; }
+
+              if(faltamCiclo.length > 0) {
+                  insight += `• *Faltam no Ciclo:* As dezenas *${faltamCiclo.map(n=>n<10?'0'+n:n).join(', ')}* ainda não saíram no ciclo atual.\n`;
+              } else { insight += `• *Faltam no Ciclo:* O ciclo fechou! Todas as dezenas estão zeradas.\n`; }
 
               if(quebrasForte.length > 0) {
-                  let bQ = quebrasForte[0];
-                  insight += `🛑 *Alerta de Quebra:* A dezena *${bQ.d < 10 ? '0'+bQ.d : bQ.d}* já saiu ${bQ.val} vezes seguidas. Ela tem *${bQ.taxa}%* de probabilidade matemática de falhar hoje.\n`;
-              } else { insight += `🛑 *Evitar:* Nenhuma dezena atingiu o teto de repetições consecutivas.\n`; }
+                  let bQ = quebrasForte[0]; let dzQ = bQ.d < 10 ? '0'+bQ.d : bQ.d;
+                  insight += `• *Para Evitar:* A dezena *${dzQ}* saiu ${bQ.val} vezes seguidas e "cansou". A chance dela falhar (quebrar) hoje é de *${bQ.taxa}%*.\n`;
+              } else { insight += `• *Para Evitar:* Nenhuma dezena atingiu excesso crítico de sorteios.\n`; }
 
-              insight += `\n🗺️ *Análise do Mapa de Calor (Últimos 10 jogos):*\n`;
-              insight += `• *Concentração:* A ${lForte.name} está pegando fogo 🔥 com ${lForte.val} aparições recentes. É a linha mais forte do momento.\n`;
-              insight += `• *Buraco na Grade:* A ${lFraca.name} esfriou drasticamente ❄️ (${lFraca.val} aparições). Reduza as dezenas desta linha.\n`;
-              if(quentes10.length > 0) insight += `• *Torres Fortes:* As dezenas ${quentes10.map(n => n<10?'0'+n:n).join(', ')} não param de sair.\n`;
-              if(frias10.length > 0) insight += `• *Sumiço Total:* As dezenas ${frias10.map(n => n<10?'0'+n:n).join(', ')} estão criando buracos no mapa.\n`;
+              insight += `• *O Mapa:* Aposte forte na *${lForte.n}*, pois essa linha está quente. A *${lFraca.n}* deu uma esfriada.\n\n`;
+              insight += `🎯 *Palpite do Assistente (15 Dezenas):*\n\`${palpiteStr}\`\n_(Gerado cruzando o ciclo, fixando atrasos e evitando quebras)_\n`;
 
               // --- ENVIO TELEGRAM ---
               const token = process.env.TELEGRAM_TOKEN; const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -170,9 +195,11 @@ jobs:
                   let texto = `🍀 *Painel Lotofácil Atualizado*\n🔄 *Última Atualização:* ${dataAtual}\n\n` +
                               `🏆 *Último Sorteio:* ${ultimo.concurso} (${ultimo.data})\n🔢 *Dezenas:* ${dezenasFormatadas}\n` +
                               `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n💰 *Prêmio:* ${ultimo.premio ? toBRL(ultimo.premio) : 'Apurando...'}\n\n` +
-                              `🔮 *Próximo Sorteio:* ${ultimo.proxConcurso} (${ultimo.proxData})\n⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n` +
+                              `🔮 *Próximo Sorteio:* ${ultimo.proxConcurso} (${ultimo.proxData})\n⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n\n` +
                               `${insight}\n` +
-                              `🔗 *Acesse seu painel:* https://renatocosta93.github.io/painel-loto/`;
+                              `✅ *Base:* 50 Jogos (${novaTabela[novaTabela.length-1].concurso} ao ${ultimo.concurso})\n` +
+                              `🔗 *Seu Painel:* https://renatocosta93.github.io/painel-loto/\n` +
+                              `🏦 *Fonte Oficial:* [Caixa Econômica](https://loterias.caixa.gov.br/Paginas/Lotofacil.aspx)`;
 
                   try {
                       let resBot = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true }) });
@@ -189,5 +216,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Dados e Telegram" || echo "Sem mudanças"
+          git commit -m "Auto: Palpite, Ciclo e Telegram Atualizados" || echo "Sem mudanças"
           git push
