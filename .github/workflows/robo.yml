@@ -85,15 +85,22 @@ jobs:
                   }
               }
               
-              // Lógica de Ciclo
-              let histRev = [...novaTabela].reverse();
-              let cicloAtual = new Set();
-              for(let s of histRev) {
-                  s.dezenas.forEach(d => cicloAtual.add(d));
-                  if(cicloAtual.size === 25) cicloAtual.clear(); // Resetou o ciclo
+              // Lógica de Ciclo (Viagem no tempo do mais antigo pro mais novo)
+              let histAsc = [...novaTabela].reverse();
+              let ciclosFechados = [];
+              let setC = new Set();
+              let contC = 0;
+              for(let s of histAsc) {
+                  contC++;
+                  s.dezenas.forEach(d => setC.add(d));
+                  if(setC.size === 25) {
+                      ciclosFechados.push(contC);
+                      setC.clear();
+                      contC = 0;
+                  }
               }
               let faltamCiclo = [];
-              for(let i=1; i<=25; i++) { if(!cicloAtual.has(i)) faltamCiclo.push(i); }
+              for(let i=1; i<=25; i++) { if(!setC.has(i)) faltamCiclo.push(i); }
 
               // Atrasos e Quebras
               let atrasosForte = []; let quebrasForte = [];
@@ -156,21 +163,26 @@ jobs:
               linhas.sort((a,b) => b.v - a.v); let lForte = linhas[0]; let lFraca = linhas[4];
 
               // Montando o texto do Assistente
-              let insight = `🤖 *Análise do Assistente Preditivo:*\n_Hoje o cenário está muito claro. Aqui vai a minha leitura cruzando os 50 jogos:_\n\n`;
+              let insight = `🤖 *Análise do Assistente Preditivo:*\n_Aqui vai a minha leitura cruzando as estatísticas dos 50 jogos:_\n\n`;
               
               if(atrasosForte.length > 0) {
                   let bA = atrasosForte[0]; let dzA = bA.d < 10 ? '0'+bA.d : bA.d;
-                  insight += `• *Para Fixar:* A dezena *${dzA}* sumiu e atingiu seu limite de atraso. A chance matemática dela "estourar" hoje é de *${bA.taxa}%*.\n`;
+                  insight += `• *Para Fixar:* A dezena *${dzA}* atingiu seu limite de atraso. A chance matemática dela "estourar" (retornar) hoje é de *${bA.taxa}%*.\n`;
               } else { insight += `• *Para Fixar:* Não temos anomalias de atraso extremo hoje.\n`; }
 
               if(faltamCiclo.length > 0) {
-                  insight += `• *Faltam no Ciclo:* As dezenas *${faltamCiclo.map(n=>n<10?'0'+n:n).join(', ')}* ainda não saíram no ciclo atual.\n`;
-              } else { insight += `• *Faltam no Ciclo:* O ciclo fechou! Todas as dezenas estão zeradas.\n`; }
+                  insight += `• *Ciclo Atual:* Faltam as dezenas *${faltamCiclo.map(n=>n<10?'0'+n:n).join(', ')}*. O ciclo atual está no ${contC}º concurso.\n`;
+              } else { insight += `• *Ciclo Atual:* O ciclo fechou! Todas as dezenas estão zeradas.\n`; }
+              
+              if(ciclosFechados.length > 0) {
+                  let ultimosC = ciclosFechados.slice(-5).map(n => n + ' jgs').join(', ');
+                  insight += `• *Histórico:* Tivemos ${ciclosFechados.length} ciclos concluídos nos 50 jogos. Duração dos últimos: *${ultimosC}*.\n`;
+              }
 
               if(quebrasForte.length > 0) {
                   let bQ = quebrasForte[0]; let dzQ = bQ.d < 10 ? '0'+bQ.d : bQ.d;
-                  insight += `• *Para Evitar:* A dezena *${dzQ}* saiu ${bQ.val} vezes seguidas e "cansou". A chance dela falhar (quebrar) hoje é de *${bQ.taxa}%*.\n`;
-              } else { insight += `• *Para Evitar:* Nenhuma dezena atingiu excesso crítico de sorteios.\n`; }
+                  insight += `• *Para Evitar:* A dezena *${dzQ}* saiu ${bQ.val} vezes seguidas. A chance dela falhar (quebrar) hoje é de *${bQ.taxa}%*.\n`;
+              } else { insight += `• *Para Evitar:* Nenhuma dezena atingiu excesso crítico consecutivo.\n`; }
 
               insight += `• *O Mapa:* Aposte forte na *${lForte.n}*, pois essa linha está quente. A *${lFraca.n}* deu uma esfriada.\n\n`;
               insight += `🎯 *Palpite do Assistente (15 Dezenas):*\n\`${palpiteStr}\`\n_(Gerado cruzando o ciclo, fixando atrasos e evitando quebras)_\n`;
@@ -216,5 +228,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Palpite, Ciclo e Telegram Atualizados" || echo "Sem mudanças"
+          git commit -m "Auto: Ciclos Historicos e Assistente Preditivo" || echo "Sem mudanças"
           git push
