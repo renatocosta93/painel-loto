@@ -130,11 +130,14 @@
                     <div class="badge-list" id="badge-frias"></div>
                 </div>
                 
-                <!-- O RETORNO DO CICLO -->
+                <!-- O RETORNO DO CICLO COM HISTÓRICO -->
                 <div class="stat-block">
-                    <div class="stat-block-header">🔄 Faltam no Ciclo</div>
-                    <div class="stat-block-desc">Dezenas que ainda não foram sorteadas desde que o ciclo atual iniciou. Use-as para completar seus jogos.</div>
+                    <div class="stat-block-header">🔄 Ciclo das Dezenas</div>
+                    <div class="stat-block-desc" id="desc-ciclo">Rastreando as dezenas faltantes para fechar o ciclo.</div>
                     <div class="badge-list" id="badge-ciclo"></div>
+                    <div id="historico-ciclos" style="margin-top: 12px; font-size: 0.85rem; color: #475569; background: #e2e8f0; padding: 10px; border-radius: 6px; font-weight: 500;">
+                        <!-- Injetado via JS -->
+                    </div>
                 </div>
 
                 <!-- Alertas Inteligentes Formatados -->
@@ -412,14 +415,24 @@
                     }
                 }
 
-                // Cálculo do Ciclo
-                let cicloAtual = new Set();
-                let histRev = [...hist].reverse();
-                for(let s of histRev) {
-                    s.dezenas.forEach(d => cicloAtual.add(d));
-                    if(cicloAtual.size === 25) cicloAtual.clear(); 
+                // Cálculo do Ciclo Histórico (Viagem no tempo)
+                let histAsc = [...hist].reverse();
+                let ciclosFechados = [];
+                let setC = new Set();
+                let contC = 0;
+                for(let s of histAsc) {
+                    contC++;
+                    s.dezenas.forEach(d => setC.add(d));
+                    if(setC.size === 25) {
+                        ciclosFechados.push(contC);
+                        setC.clear();
+                        contC = 0;
+                    }
                 }
 
+                let faltam = [];
+                for(let i=1; i<=25; i++) { if(!setC.has(i)) faltam.push({d: i, info: ''}); }
+                
                 const renderBadgesBasic = (cid, arr, css) => {
                     const c = document.getElementById(cid); c.innerHTML = '';
                     arr.forEach(item => {
@@ -429,10 +442,21 @@
                     });
                 };
 
-                let faltam = [];
-                for(let i=1; i<=25; i++) { if(!cicloAtual.has(i)) faltam.push({d: i, info: ''}); }
-                if(faltam.length > 0) renderBadgesBasic('badge-ciclo', faltam, 'bg-cycle');
-                else document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou!</span>';
+                // Tela do Ciclo
+                if(faltam.length > 0) {
+                    renderBadgesBasic('badge-ciclo', faltam, 'bg-cycle');
+                    document.getElementById('desc-ciclo').innerHTML = `Faltam estas dezenas para fechar o ciclo. O ciclo atual está no <strong>${contC}º concurso</strong>.`;
+                } else {
+                    document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou neste sorteio!</span>';
+                    document.getElementById('desc-ciclo').innerHTML = `Todas as 25 dezenas já saíram. Um novo ciclo começará no próximo sorteio.`;
+                }
+
+                if(ciclosFechados.length > 0) {
+                    let histStr = ciclosFechados.slice(-6).map(n => `${n} jgs`).join(' ➔ ');
+                    document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${ciclosFechados.length} ciclos concluídos nos últimos 50 jogos. Duração dos últimos: <span style="color:var(--primary-dark);">${histStr}</span>.`;
+                } else {
+                    document.getElementById('historico-ciclos').style.display = 'none';
+                }
                 
                 let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
                 renderBadgesBasic('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
