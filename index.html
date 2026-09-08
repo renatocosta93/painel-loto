@@ -76,7 +76,7 @@
         .highlight-success { color: #059669; font-weight: 700; }
         
         .multi-gen { display: flex; gap: 12px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
-        .multi-gen input { padding: 14px; width: 90px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; text-align: center; outline: none; }
+        .multi-gen input, .multi-gen select { padding: 14px; width: 85px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; text-align: center; outline: none; background: white;}
         textarea { width: 100%; height: 160px; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0; font-family: monospace; font-size: 16px; margin-top: 10px; }
         
         .grade-panel { background: #f8fafc; padding: 25px; border-radius: 12px; margin-top: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 2px dashed #cbd5e1; }
@@ -84,7 +84,7 @@
         .bolao-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 500;}
         
         @media (max-width: 600px) { 
-            body { padding: 10px; } .panel { padding: 15px; } .multi-gen input, .multi-gen button, .btn { width: 100%; } 
+            body { padding: 10px; } .panel { padding: 15px; } .multi-gen input, .multi-gen select, .multi-gen button, .btn { width: 100%; } 
             .dezena { width: 42px; height: 42px; font-size: 16px; } .stat-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .stat-value { align-self: flex-start; } .heatmap-table { font-size: 0.75rem; }
         }
@@ -130,17 +130,13 @@
                     <div class="badge-list" id="badge-frias"></div>
                 </div>
                 
-                <!-- O RETORNO DO CICLO COM HISTÓRICO -->
                 <div class="stat-block">
                     <div class="stat-block-header">🔄 Ciclo das Dezenas</div>
                     <div class="stat-block-desc" id="desc-ciclo">Rastreando as dezenas faltantes para fechar o ciclo.</div>
                     <div class="badge-list" id="badge-ciclo"></div>
-                    <div id="historico-ciclos" style="margin-top: 12px; font-size: 0.85rem; color: #475569; background: #e2e8f0; padding: 10px; border-radius: 6px; font-weight: 500;">
-                        <!-- Injetado via JS -->
-                    </div>
+                    <div id="historico-ciclos" style="margin-top: 12px; font-size: 0.85rem; color: #475569; background: #e2e8f0; padding: 10px; border-radius: 6px; font-weight: 500;"></div>
                 </div>
 
-                <!-- Alertas Inteligentes Formatados -->
                 <div class="stat-block" style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #fde68a;">
                     <div class="stat-block-header" style="color: #b45309;">🚨 Alerta de Atraso (Ausência Crítica)</div>
                     <div class="stat-block-desc" style="color: #78350f; margin-bottom: 10px;">Dezenas que atingiram o limite histórico sem sair. A <strong>Taxa de Estouro</strong> mostra a probabilidade histórica dessa dezena retornar logo no próximo concurso após bater esse limite.</div>
@@ -166,9 +162,9 @@
         </div>
 
         <div class="panel">
-            <h2>🎯 1. Validador de Bilhete</h2>
+            <h2>🎯 1. Validador de Bilhete Dinâmico</h2>
             <div class="volante" id="volante"></div>
-            <div style="text-align: center; margin-bottom: 15px; font-weight: 600; color: var(--text-muted);"><span id="contador" style="color: var(--primary-dark); font-size: 1.1rem;">0</span> / 15 selecionadas</div>
+            <div style="text-align: center; margin-bottom: 15px; font-weight: 600; color: var(--text-muted);"><span id="contador" style="color: var(--primary-dark); font-size: 1.1rem;">0</span> dezenas selecionadas</div>
             <div class="btn-group">
                 <button class="btn btn-secondary" onclick="limpar()">Limpar</button>
                 <button class="btn btn-primary" onclick="gerarJogoIdeal()">Gerar Jogo Ideal</button>
@@ -181,17 +177,17 @@
         </div>
 
         <div class="panel">
-            <h2>📈 2. Avaliação Padrão</h2>
-            <div class="stat-item"><span class="stat-label">Ímpares / Pares:</span><span id="stat-impares" class="stat-value">0 / 0</span><small style="color:var(--text-muted)">(Ideal: 8/7)</small></div>
-            <div class="stat-item"><span class="stat-label">Moldura / Centro:</span><span id="stat-moldura" class="stat-value">0 / 0</span><small style="color:var(--text-muted)">(Ideal: 9/6 ou 10/5)</small></div>
-            <div class="stat-item"><span class="stat-label">Números Primos:</span><span id="stat-primos" class="stat-value">0</span><small style="color:var(--text-muted)">(Ideal: 4 a 6)</small></div>
-            <div class="stat-item"><span class="stat-label">Soma das Dezenas:</span><span id="stat-soma" class="stat-value">0</span><small style="color:var(--text-muted)">(Ideal: 180-220)</small></div>
-            <div class="stat-item"><span class="stat-label">Maior Sequência:</span><span id="stat-seq" class="stat-value">0</span><small style="color:var(--text-muted)">(Máximo 5)</small></div>
-            <div class="stat-item"><span class="stat-label">Repetidas do Último:</span><span id="stat-rep" class="stat-value">-</span><small style="color:var(--text-muted)">(Ideal: 8 a 10)</small></div>
+            <h2>📈 2. Avaliação (15 a 20 Dezenas)</h2>
+            <div class="stat-item"><span class="stat-label">Ímpares / Pares:</span><span id="stat-impares" class="stat-value">0 / 0</span><small></small></div>
+            <div class="stat-item"><span class="stat-label">Moldura / Centro:</span><span id="stat-moldura" class="stat-value">0 / 0</span><small></small></div>
+            <div class="stat-item"><span class="stat-label">Números Primos:</span><span id="stat-primos" class="stat-value">0</span><small></small></div>
+            <div class="stat-item"><span class="stat-label">Soma das Dezenas:</span><span id="stat-soma" class="stat-value">0</span><small></small></div>
+            <div class="stat-item"><span class="stat-label">Maior Sequência:</span><span id="stat-seq" class="stat-value">0</span><small></small></div>
+            <div class="stat-item"><span class="stat-label">Repetidas do Último:</span><span id="stat-rep" class="stat-value">-</span><small></small></div>
             <div class="grade-panel" id="grade-panel">
                 <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">Veredito Final</span>
                 <span id="stat-nota" style="font-size: 2.5rem; font-weight: 700; color: #94a3b8; line-height: 1;">--</span>
-                <span id="stat-nota-msg" style="font-size: 0.95rem; font-weight: 600; margin-top: 10px; color: #64748b;">Selecione 15 dezenas.</span>
+                <span id="stat-nota-msg" style="font-size: 0.95rem; font-weight: 600; margin-top: 10px; color: #64748b;">Selecione de 15 a 20 dezenas.</span>
             </div>
         </div>
 
@@ -200,6 +196,15 @@
             <div class="multi-gen">
                 <label style="font-weight: 600; color: var(--text-muted);">Qtd:</label>
                 <input type="number" id="qtd-jogos" value="5" min="1" max="100">
+                <label style="font-weight: 600; color: var(--text-muted);">Dez:</label>
+                <select id="tam-jogo">
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select>
                 <button class="btn btn-primary" style="flex: 2;" onclick="gerarMultiplos()">🤖 Gerar Automático</button>
                 <button class="btn btn-secondary" style="flex: 2;" onclick="avaliarBolaoHTML()">📊 Avaliar Bolão</button>
             </div>
@@ -220,12 +225,8 @@
                 <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">O Mapa de Calor:</strong> Não confie apenas em números frios e quentes; olhe a grade. O mapa te ajuda a identificar se há grupos inteiros (colunas ou linhas) falhando juntos.</li>
             </ul>
 
-            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Regras Estruturais (Filtro Global)</h2>
-            <p>Quando você aperta o botão "Gerar Jogo Ideal", nosso filtro autônomo obriga que a combinação respeite os padrões que mais saem na história:</p>
-            <ul style="margin-left: 20px; margin-bottom: 25px; margin-top: 15px; color: var(--text-muted); font-weight: 500;">
-                <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Equilíbrio Par/Ímpar e Moldura:</strong> Mantém a média de 7/8 ou 8/7 e a borda ideal.</li>
-                <li style="margin-bottom: 8px;"><strong style="color: var(--text-main);">Soma e Sequência Controladas:</strong> Trava "carrinhos" muito longos (como 1,2,3,4,5,6) e mantém a soma média entre 180-220.</li>
-            </ul>
+            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Regras Estruturais (Filtro Dinâmico)</h2>
+            <p>O avaliador do Item 2 foi programado com uma <strong>Matriz de Proporção</strong>. Se você gerar ou validar um jogo com 18 dezenas, por exemplo, o sistema sabe perfeitamente que a tolerância de Primos, Ímpares e a Soma final será maior do que um jogo de 15 dezenas, garantindo que a sua "Nota Final" tenha sempre 100% de curácia para o tamanho exato da aposta escolhida.</p>
         </div>
     </div>
 
@@ -235,6 +236,17 @@
     <script>
         const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23];
         const MOLDURA = [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25];
+        
+        // Matriz Dinâmica de Proporcionalidade Matemática para Bolões (15 a 20 dezenas)
+        const IDEAL = {
+            15: { imp: [7,8], mol: [9,10], pri: [4,5,6], soma: [180,220], seq: 5, rep: [8,9,10] },
+            16: { imp: [7,8,9], mol: [9,10,11], pri: [4,5,6], soma: [195,235], seq: 6, rep: [8,9,10,11] },
+            17: { imp: [8,9], mol: [10,11,12], pri: [5,6,7], soma: [210,250], seq: 7, rep: [9,10,11,12] },
+            18: { imp: [8,9,10], mol: [11,12,13], pri: [5,6,7], soma: [225,265], seq: 8, rep: [10,11,12,13] },
+            19: { imp: [9,10,11], mol: [12,13,14], pri: [6,7,8], soma: [240,280], seq: 9, rep: [11,12,13,14] },
+            20: { imp: [10,11,12], mol: [13,14,15], pri: [6,7,8,9], soma: [255,295], seq: 10, rep: [12,13,14,15] }
+        };
+
         let selecionadas = []; let ultimoSorteio = []; let dadosCarregados = false;
 
         function atualizarRelogio() {
@@ -251,89 +263,119 @@
         function toggleDezena(num, btn) {
             const index = selecionadas.indexOf(num);
             if (index > -1) { selecionadas.splice(index, 1); btn.classList.remove('selected'); } 
-            else { if (selecionadas.length < 15) { selecionadas.push(num); btn.classList.add('selected'); } else return alert("Limite atingido!"); }
+            else { if (selecionadas.length < 20) { selecionadas.push(num); btn.classList.add('selected'); } else return alert("Limite de 20 dezenas atingido!"); }
             selecionadas.sort((a, b) => a - b); atualizarEstatisticas();
         }
 
         function limpar() { selecionadas = []; document.querySelectorAll('.dezena').forEach(b => b.classList.remove('selected')); atualizarEstatisticas(); }
 
         function adicionarAoBolao() {
-            if (selecionadas.length !== 15) return alert('Selecione 15 dezenas!');
+            if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!');
             const jogo = selecionadas.map(n => n < 10 ? '0' + n : n).join(' '); const ta = document.getElementById('txt-jogos');
             if (ta.value.split('\n').includes(jogo)) return alert('Jogo já adicionado!');
             ta.value += (ta.value.trim() === "" ? "" : '\n') + jogo; avaliarBolaoHTML(); limpar();
         }
 
         function calcularNota(jogo) {
+            const size = jogo.length;
+            if(size < 15 || size > 20) return { percentual: 0, cor: '#ccc', msg: 'Inválido' };
+            const id = IDEAL[size];
+
             const impares = jogo.filter(n => n % 2 !== 0).length; const moldura = jogo.filter(n => MOLDURA.includes(n)).length;
             const primos = jogo.filter(n => PRIMOS.includes(n)).length; const soma = jogo.reduce((a, b) => a + b, 0);
             let maxSeq = 1; let seqAtual = 1;
             for(let i=1; i<jogo.length; i++) { if(jogo[i] === jogo[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; } else seqAtual = 1; }
             let repetidas = ultimoSorteio.length > 0 ? jogo.filter(n => ultimoSorteio.includes(n)).length : 0;
-            const isImpOk = (impares === 7 || impares === 8); const isMolOk = (moldura >= 9 && moldura <= 10);
-            const isPriOk = (primos >= 4 && primos <= 6); const isSeqOk = (maxSeq <= 5); const isSomaOk = (soma >= 180 && soma <= 220); const isRepOk = (repetidas >= 8 && repetidas <= 10);
+            
+            const isImpOk = id.imp.includes(impares); const isMolOk = id.mol.includes(moldura);
+            const isPriOk = id.pri.includes(primos); const isSeqOk = maxSeq <= id.seq; 
+            const isSomaOk = (soma >= id.soma[0] && soma <= id.soma[1]); const isRepOk = id.rep.includes(repetidas);
+            
             let acertos = [isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk]; if(ultimoSorteio.length > 0) acertos.push(isRepOk);
             let percentual = Math.round((acertos.filter(Boolean).length / acertos.length) * 100);
             let cor = percentual === 100 ? 'var(--success)' : (percentual >= 66 ? 'var(--warning)' : 'var(--danger)');
             let msg = percentual === 100 ? 'Excelente' : (percentual >= 66 ? 'Bom Jogo' : 'Arriscado');
-            return { impares, moldura, primos, soma, maxSeq, repetidas, isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk, percentual, cor, msg };
+            return { impares, moldura, primos, soma, maxSeq, repetidas, isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk, percentual, cor, msg, id };
         }
 
         function atualizarEstatisticas() {
-            document.getElementById('contador').innerText = selecionadas.length;
-            if (selecionadas.length === 0) {
+            const size = selecionadas.length;
+            document.getElementById('contador').innerText = size;
+            document.getElementById('contador').style.color = (size >= 15 && size <= 20) ? 'var(--success)' : 'var(--primary-dark)';
+            
+            if (size < 15 || size > 20) {
                 document.querySelectorAll('.stat-value').forEach(e => { e.innerText = '-'; e.className = 'stat-value'; });
                 document.getElementById('stat-nota').innerText = '--'; document.getElementById('stat-nota').style.color = '#94a3b8';
-                document.getElementById('grade-panel').style.borderColor = '#cbd5e1'; document.getElementById('stat-nota-msg').innerText = 'Selecione 15 dezenas.'; return;
+                document.getElementById('grade-panel').style.borderColor = '#cbd5e1'; 
+                document.getElementById('stat-nota-msg').innerText = size < 15 ? `Faltam ${15 - size} dezenas.` : `Excesso de dezenas.`; 
+                document.getElementById('stat-nota-msg').style.color = '#64748b';
+                
+                const ideal = IDEAL[15];
+                updateBadge('stat-impares', '-', false, ideal.imp.join(' ou ')); updateBadge('stat-moldura', '-', false, ideal.mol.join(' ou '));
+                updateBadge('stat-primos', '-', false, ideal.pri.join(' a ')); updateBadge('stat-seq', '-', false, 'Máx '+ideal.seq);
+                updateBadge('stat-soma', '-', false, `${ideal.soma[0]}-${ideal.soma[1]}`); updateBadge('stat-rep', '-', false, ideal.rep.join(' ou '));
+                return;
             }
-            const aval = calcularNota(selecionadas); const pares = selecionadas.length - aval.impares;
-            updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk); updateBadge('stat-moldura', `${aval.moldura} / ${selecionadas.length - aval.moldura}`, aval.isMolOk);
-            updateBadge('stat-primos', aval.primos, aval.isPriOk); updateBadge('stat-seq', aval.maxSeq, aval.isSeqOk);
-            if(selecionadas.length===15) {
-                updateBadge('stat-soma', aval.soma, aval.isSomaOk); document.getElementById('stat-nota').innerText = `${aval.percentual}%`; 
-                document.getElementById('stat-nota').style.color = aval.cor; document.getElementById('grade-panel').style.borderColor = aval.cor; 
-                document.getElementById('stat-nota-msg').innerText = aval.msg; document.getElementById('stat-nota-msg').style.color = aval.cor;
-            } else {
-                document.getElementById('stat-soma').innerText = aval.soma; document.getElementById('stat-soma').className = 'stat-value';
-                document.getElementById('stat-nota').innerText = '--'; document.getElementById('grade-panel').style.borderColor = '#cbd5e1';
-                document.getElementById('stat-nota-msg').innerText = `Faltam ${15 - selecionadas.length}`; document.getElementById('stat-nota-msg').style.color = '#64748b';
-            }
-            if (ultimoSorteio.length > 0) updateBadge('stat-rep', aval.repetidas, aval.isRepOk);
+            
+            const aval = calcularNota(selecionadas); const pares = size - aval.impares; const ideal = aval.id;
+            
+            updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk, ideal.imp.join(' ou ')); 
+            updateBadge('stat-moldura', `${aval.moldura} / ${size - aval.moldura}`, aval.isMolOk, ideal.mol.join(' ou '));
+            updateBadge('stat-primos', aval.primos, aval.isPriOk, ideal.pri.join(' a ')); 
+            updateBadge('stat-seq', aval.maxSeq, aval.isSeqOk, 'Máx ' + ideal.seq);
+            updateBadge('stat-soma', aval.soma, aval.isSomaOk, `${ideal.soma[0]} - ${ideal.soma[1]}`);
+            
+            document.getElementById('stat-nota').innerText = `${aval.percentual}%`; 
+            document.getElementById('stat-nota').style.color = aval.cor; document.getElementById('grade-panel').style.borderColor = aval.cor; 
+            document.getElementById('stat-nota-msg').innerText = aval.msg + ` (${size} Dezenas)`; document.getElementById('stat-nota-msg').style.color = aval.cor;
+            
+            if (ultimoSorteio.length > 0) updateBadge('stat-rep', aval.repetidas, aval.isRepOk, ideal.rep.join(' ou '));
         }
 
-        function updateBadge(id, txt, isOk) { const el = document.getElementById(id); el.innerText = txt; el.className = 'stat-value ' + (isOk ? 'status-ok' : 'status-bad'); }
+        function updateBadge(id, txt, isOk, idealTxt) { 
+            const el = document.getElementById(id); el.innerText = txt; el.className = 'stat-value ' + (isOk ? 'status-ok' : 'status-bad'); 
+            const small = el.nextElementSibling; if(small && idealTxt) small.innerText = `(Ideal: ${idealTxt})`;
+        }
+        
         function gerarAleatorios(qtd, max) { let nums = new Set(); while(nums.size < qtd) nums.add(Math.floor(Math.random()*max)+1); return Array.from(nums).sort((a,b)=>a-b); }
+        
         function gerarJogoIdeal() {
-            limpar(); let t = []; let v = false;
-            while (!v) { t = gerarAleatorios(15, 25); v = calcularNota(t).percentual === 100; }
+            limpar(); 
+            const size = parseInt(document.getElementById('tam-jogo') ? document.getElementById('tam-jogo').value : 15);
+            let t = []; let v = false;
+            while (!v) { t = gerarAleatorios(size, 25); v = calcularNota(t).percentual === 100; }
             const botoes = document.querySelectorAll('.dezena');
             t.forEach(num => { selecionadas.push(num); botoes[num - 1].classList.add('selected'); });
             selecionadas.sort((a, b) => a - b); atualizarEstatisticas();
         }
+        
         function gerarMultiplos() {
             const qtd = parseInt(document.getElementById('qtd-jogos').value) || 1;
+            const size = parseInt(document.getElementById('tam-jogo').value) || 15;
             let ta = document.getElementById('txt-jogos'); let res = [];
             for(let i=0; i<qtd; i++) {
                 let t = []; let v = false;
-                while (!v) { t = gerarAleatorios(15, 25); v = calcularNota(t).percentual === 100; }
+                while (!v) { t = gerarAleatorios(size, 25); v = calcularNota(t).percentual === 100; }
                 res.push(t.map(n => n < 10 ? '0'+n : n).join(' '));
             }
             ta.value = res.join('\n'); avaliarBolaoHTML();
         }
+        
         function lerJogosDaTextArea() {
             const txt = document.getElementById('txt-jogos').value.trim(); if (!txt) return [];
             return txt.split('\n').map(l => {
                 const nums = l.trim().split(/\s+/).map(Number).filter(n => n>=1 && n<=25 && !isNaN(n));
                 return [...new Set(nums)].sort((a,b)=>a-b);
-            }).filter(u => u.length === 15);
+            }).filter(u => u.length >= 15 && u.length <= 20);
         }
+        
         function avaliarBolaoHTML() {
             const jogos = lerJogosDaTextArea(); const div = document.getElementById('bolao-results');
-            if (jogos.length === 0) { div.style.display = 'block'; div.innerHTML = '<span style="color:red; font-weight:600;">Sem jogos válidos.</span>'; return; }
+            if (jogos.length === 0) { div.style.display = 'block'; div.innerHTML = '<span style="color:red; font-weight:600;">Sem jogos válidos (somente de 15 a 20 dezenas).</span>'; return; }
             let soma = 0; let html = '<h3 style="color:var(--primary-dark); font-size:1.1rem; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">📊 Avaliação</h3>';
             jogos.forEach((j, i) => {
                 const aval = calcularNota(j); soma += aval.percentual;
-                html += `<div class="bolao-item"><span><strong>J${i+1}:</strong> ${j.map(n=>n<10?'0'+n:n).join(' ')}</span><span style="color:${aval.cor}; font-weight:700;">Nota: ${aval.percentual}%</span></div>`;
+                html += `<div class="bolao-item"><span><strong>J${i+1} (${j.length}dz):</strong> ${j.map(n=>n<10?'0'+n:n).join(' ')}</span><span style="color:${aval.cor}; font-weight:700;">Nota: ${aval.percentual}%</span></div>`;
             });
             const media = Math.round(soma / jogos.length); let cor = media === 100 ? 'var(--success)' : (media >= 66 ? 'var(--warning)' : 'var(--danger)');
             html += `<div style="margin-top:15px;text-align:center;font-size:1.2rem;font-weight:700;padding:12px;border:2px dashed ${cor}; border-radius:10px; color: ${cor};">Nota Geral: ${media}%</div>`;
@@ -341,23 +383,25 @@
         }
         
         function enviarWhatsAppUnicoTexto() {
-            if (selecionadas.length !== 15) return alert('Selecione 15 dezenas!');
+            if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!');
             const aval = calcularNota(selecionadas);
-            const msg = `🍀 *Lotofácil*\n\nDezenas: ${selecionadas.map(n => n < 10 ? '0'+n : n).join(' ')}\n📊 *Nota:* ${aval.percentual}% (${aval.msg})`;
+            const msg = `🍀 *Lotofácil (${selecionadas.length} dezenas)*\n\nDezenas: ${selecionadas.map(n => n < 10 ? '0'+n : n).join(' ')}\n📊 *Nota:* ${aval.percentual}% (${aval.msg})`;
             window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
         }
+        
         function enviarWhatsAppMassaTexto() {
-            const jogos = lerJogosDaTextArea(); if (jogos.length === 0) return alert('Sem jogos!');
+            const jogos = lerJogosDaTextArea(); if (jogos.length === 0) return alert('Sem jogos válidos!');
             let msg = `🍀 *Bolão (${jogos.length} Jogos)*\n\n`; let soma = 0;
-            jogos.forEach((j, i) => { const aval = calcularNota(j); soma += aval.percentual; msg += `*J${i+1}:* ${j.map(n=>n<10?'0'+n:n).join(' ')} - (${aval.percentual}%)\n`; });
-            msg += `\n📊 *Média:* ${Math.round(soma / jogos.length)}%`; window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+            jogos.forEach((j, i) => { const aval = calcularNota(j); soma += aval.percentual; msg += `*J${i+1} (${j.length}dz):* ${j.map(n=>n<10?'0'+n:n).join(' ')} - (${aval.percentual}%)\n`; });
+            msg += `\n📊 *Média Geral:* ${Math.round(soma / jogos.length)}%`; window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
         }
+        
         async function gerarECompartilharCanvas(jogosObjArray, isBolao) {
             const container = document.getElementById('export-canvas-container'); const listDiv = document.getElementById('export-games-list'); listDiv.innerHTML = ''; let somaNotas = 0;
             jogosObjArray.forEach((jogo, idx) => {
                 const aval = calcularNota(jogo); somaNotas += aval.percentual;
                 const div = document.createElement('div'); div.style = 'margin-bottom:10px; padding:10px; background:#f4f7f6; border-radius:5px;';
-                div.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${idx+1}</div><div style="font-weight:bold; font-size:1.1rem; letter-spacing:2px; color:#444;">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div><div style="font-size:0.9rem; font-weight:bold; color: ${aval.cor};">Nota: ${aval.percentual}%</div>`;
+                div.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${idx+1} (${jogo.length}dz)</div><div style="font-weight:bold; font-size:1.1rem; letter-spacing:2px; color:#444;">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div><div style="font-size:0.9rem; font-weight:bold; color: ${aval.cor};">Nota: ${aval.percentual}%</div>`;
                 listDiv.appendChild(div);
             });
             if (isBolao && jogosObjArray.length > 1) {
@@ -375,7 +419,7 @@
                 });
             } catch (e) { container.style.top = '-9999px'; container.style.left = '-9999px'; }
         }
-        function enviarWhatsAppUnicoImagem() { if (selecionadas.length !== 15) return alert('Selecione 15!'); gerarECompartilharCanvas([selecionadas], false); }
+        function enviarWhatsAppUnicoImagem() { if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!'); gerarECompartilharCanvas([selecionadas], false); }
         function enviarWhatsAppMassaImagem() { const j = lerJogosDaTextArea(); if (j.length === 0) return alert('Caixa vazia!'); gerarECompartilharCanvas(j, true); }
 
         async function carregarDadosDoRobo() {
@@ -415,7 +459,6 @@
                     }
                 }
 
-                // Cálculo do Ciclo Histórico (Viagem no tempo)
                 let histAsc = [...hist].reverse();
                 let ciclosFechados = [];
                 let setC = new Set();
@@ -442,7 +485,6 @@
                     });
                 };
 
-                // Tela do Ciclo
                 if(faltam.length > 0) {
                     renderBadgesBasic('badge-ciclo', faltam, 'bg-cycle');
                     document.getElementById('desc-ciclo').innerHTML = `Faltam estas dezenas para fechar o ciclo. O ciclo atual está no <strong>${contC}º concurso</strong>.`;
@@ -454,9 +496,7 @@
                 if(ciclosFechados.length > 0) {
                     let histStr = ciclosFechados.slice(-6).map(n => `${n} jgs`).join(' ➔ ');
                     document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${ciclosFechados.length} ciclos concluídos nos últimos 50 jogos. Duração dos últimos: <span style="color:var(--primary-dark);">${histStr}</span>.`;
-                } else {
-                    document.getElementById('historico-ciclos').style.display = 'none';
-                }
+                } else { document.getElementById('historico-ciclos').style.display = 'none'; }
                 
                 let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
                 renderBadgesBasic('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
@@ -530,7 +570,7 @@
 
                 document.getElementById('historico-info').style.display = 'block';
                 statusDiv.innerHTML = `✅ Painel Preditivo Carregado!`; statusDiv.className = 'api-status loaded';
-                if(selecionadas.length === 15) atualizarEstatisticas();
+                atualizarEstatisticas();
 
             } catch (err) { statusDiv.innerHTML = `⚠️ Erro ao montar painel. Tente novamente.`; statusDiv.className = 'api-status error'; }
         }
