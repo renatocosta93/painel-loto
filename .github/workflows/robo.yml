@@ -90,11 +90,13 @@ jobs:
               let ciclosFechados = [];
               let setC = new Set();
               let contC = 0;
+              let inicioCiclo = 0;
               for(let s of histAsc) {
+                  if (setC.size === 0) inicioCiclo = s.concurso;
                   contC++;
                   s.dezenas.forEach(d => setC.add(d));
                   if(setC.size === 25) {
-                      ciclosFechados.push(contC);
+                      ciclosFechados.push(`do ${inicioCiclo} ao ${s.concurso}`);
                       setC.clear();
                       contC = 0;
                   }
@@ -175,8 +177,8 @@ jobs:
               } else { insight += `• *Ciclo Atual:* O ciclo fechou! Todas as dezenas estão zeradas.\n`; }
               
               if(ciclosFechados.length > 0) {
-                  let ultimosC = ciclosFechados.slice(-5).map(n => n + ' jgs').join(', ');
-                  insight += `• *Histórico:* Tivemos ${ciclosFechados.length} ciclos concluídos nos 50 jogos. Duração dos últimos: *${ultimosC}*.\n`;
+                  let ultimosC = ciclosFechados.slice(-4).join(', ');
+                  insight += `• *Histórico:* Tivemos ${ciclosFechados.length} ciclos concluídos nos 50 jogos. Últimos: *${ultimosC}*.\n`;
               }
 
               if(quebrasForte.length > 0) {
@@ -228,5 +230,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Ciclos Historicos e Assistente Preditivo" || echo "Sem mudanças"
+          git commit -m "Auto: Novo Formato de Ciclo e Assistente" || echo "Sem mudanças"
           git push
