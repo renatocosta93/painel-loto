@@ -463,11 +463,13 @@
                 let ciclosFechados = [];
                 let setC = new Set();
                 let contC = 0;
+                let inicioCiclo = 0;
                 for(let s of histAsc) {
+                    if (setC.size === 0) inicioCiclo = s.concurso;
                     contC++;
                     s.dezenas.forEach(d => setC.add(d));
                     if(setC.size === 25) {
-                        ciclosFechados.push(contC);
+                        ciclosFechados.push(`do ${inicioCiclo} ao ${s.concurso}`);
                         setC.clear();
                         contC = 0;
                     }
@@ -494,8 +496,8 @@
                 }
 
                 if(ciclosFechados.length > 0) {
-                    let histStr = ciclosFechados.slice(-6).map(n => `${n} jgs`).join(' ➔ ');
-                    document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${ciclosFechados.length} ciclos concluídos nos últimos 50 jogos. Duração dos últimos: <span style="color:var(--primary-dark);">${histStr}</span>.`;
+                    let histStr = ciclosFechados.slice(-4).join(' ➔ ');
+                    document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${ciclosFechados.length} ciclos concluídos nos últimos 50 jogos. Últimos: <span style="color:var(--primary-dark);">${histStr}</span>.`;
                 } else { document.getElementById('historico-ciclos').style.display = 'none'; }
                 
                 let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
