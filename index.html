@@ -166,13 +166,13 @@
             <div class="volante" id="volante"></div>
             <div style="text-align: center; margin-bottom: 15px; font-weight: 600; color: var(--text-muted);"><span id="contador" style="color: var(--primary-dark); font-size: 1.1rem;">0</span> dezenas selecionadas</div>
             <div class="btn-group">
-                <button class="btn btn-secondary" onclick="limpar()">Limpar</button>
-                <button class="btn btn-primary" onclick="gerarJogoIdeal()">Gerar Jogo Ideal</button>
+                <button class="btn btn-secondary" onclick="_0x2b1f()">Limpar</button>
+                <button class="btn btn-primary" onclick="_0x5d8c()">Gerar Jogo Ideal</button>
             </div>
-            <div class="btn-group"><button class="btn btn-warning" onclick="adicionarAoBolao()">➕ Adicionar ao Bolão</button></div>
+            <div class="btn-group"><button class="btn btn-warning" onclick="_0x9a3e()">➕ Adicionar ao Bolão</button></div>
             <div class="btn-group">
-                <button class="btn btn-success" onclick="enviarWhatsAppUnicoTexto()">📱 WhatsApp (Texto)</button>
-                <button class="btn btn-info" onclick="enviarWhatsAppUnicoImagem()">🖼️ WhatsApp (Imagem)</button>
+                <button class="btn btn-success" onclick="_0x112f()">📱 WhatsApp (Texto)</button>
+                <button class="btn btn-info" onclick="_0x448a()">🖼️ WhatsApp (Imagem)</button>
             </div>
         </div>
 
@@ -205,14 +205,14 @@
                     <option value="19">19</option>
                     <option value="20">20</option>
                 </select>
-                <button class="btn btn-primary" style="flex: 2;" onclick="gerarMultiplos()">🤖 Gerar Automático</button>
-                <button class="btn btn-secondary" style="flex: 2;" onclick="avaliarBolaoHTML()">📊 Avaliar Bolão</button>
+                <button class="btn btn-primary" style="flex: 2;" onclick="_0x77c1()">🤖 Gerar Automático</button>
+                <button class="btn btn-secondary" style="flex: 2;" onclick="_0x33b4()">📊 Avaliar Bolão</button>
             </div>
             <textarea id="txt-jogos" placeholder="Os jogos do seu bolão irão se acumular aqui..."></textarea>
             <div id="bolao-results" class="bolao-results"></div>
             <div class="btn-group">
-                <button class="btn btn-success" onclick="enviarWhatsAppMassaTexto()">📱 Compartilhar Texto</button>
-                <button class="btn btn-info" onclick="enviarWhatsAppMassaImagem()">🖼️ Compartilhar Imagem</button>
+                <button class="btn btn-success" onclick="_0x88f2()">📱 Compartilhar Texto</button>
+                <button class="btn btn-info" onclick="_0x66e5()">🖼️ Compartilhar Imagem</button>
             </div>
         </div>
         
@@ -224,9 +224,6 @@
                 <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Quebra:</strong> <strong style="color: #1e3a8a;">EVITE</strong> esses números. Se a dezena bateu o teto histórico de vezes consecutivas, a <i>Taxa de Falha</i> te avisa o risco matemático de confiar nela de novo.</li>
                 <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">O Mapa de Calor:</strong> Não confie apenas em números frios e quentes; olhe a grade. O mapa te ajuda a identificar se há grupos inteiros (colunas ou linhas) falhando juntos.</li>
             </ul>
-
-            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Regras Estruturais (Filtro Dinâmico)</h2>
-            <p>O avaliador do Item 2 foi programado com uma <strong>Matriz de Proporção</strong>. Se você gerar ou validar um jogo com 18 dezenas, por exemplo, o sistema sabe perfeitamente que a tolerância de Primos, Ímpares e a Soma final será maior do que um jogo de 15 dezenas, garantindo que a sua "Nota Final" tenha sempre 100% de curácia para o tamanho exato da aposta escolhida.</p>
         </div>
     </div>
 
@@ -234,11 +231,10 @@
     <div id="export-canvas-container"><div class="export-title" style="text-align: center; color: #6600cc; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">🍀 Lotofácil - Meus Jogos</div><div id="export-games-list"></div><div class="export-footer" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">Gerado pelo Painel Inteligente</div></div>
 
     <script>
-        const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23];
-        const MOLDURA = [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25];
-        
-        // Matriz Dinâmica de Proporcionalidade Matemática para Bolões (15 a 20 dezenas)
-        const IDEAL = {
+        (function(_0x5c9f,_0x4101){const _0x3e18=function(_0x1bc3){while(--_0x1bc3){_0x5c9f['push'](_0x5c9f['shift']());}};_0x3e18(++_0x4101);}(['charCodeAt','fromCharCode','parse','stringify','length','push','shift','floor','random','sort','includes','filter','reduce','createElement','appendChild','getElementById','innerText','style','className','innerHTML','value','split','map','trim','open','scrollTo'],0xcd));
+        const _0x10a2=[2,3,5,7,11,13,17,19,23];
+        const _0x20b4=[1,2,3,4,5,6,10,11,15,16,20,21,22,23,24,25];
+        const _0x30c6={
             15: { imp: [7,8], mol: [9,10], pri: [4,5,6], soma: [180,220], seq: 5, rep: [8,9,10] },
             16: { imp: [7,8,9], mol: [9,10,11], pri: [4,5,6], soma: [195,235], seq: 6, rep: [8,9,10,11] },
             17: { imp: [8,9], mol: [10,11,12], pri: [5,6,7], soma: [210,250], seq: 7, rep: [9,10,11,12] },
@@ -246,337 +242,272 @@
             19: { imp: [9,10,11], mol: [12,13,14], pri: [6,7,8], soma: [240,280], seq: 9, rep: [11,12,13,14] },
             20: { imp: [10,11,12], mol: [13,14,15], pri: [6,7,8,9], soma: [255,295], seq: 10, rep: [12,13,14,15] }
         };
-
-        let selecionadas = []; let ultimoSorteio = []; let dadosCarregados = false;
-
-        function atualizarRelogio() {
-            const agora = new Date(); document.getElementById('real-time-clock').innerText = `📅 ${agora.toLocaleDateString('pt-BR')} - ⏰ ${agora.toLocaleTimeString('pt-BR')}`;
+        let _0x40d8 = []; let _0x50e1 = []; let _0x60f3 = false; let _0x70a5 = [];
+        function _0x81b6() { const _0x92c7 = new Date(); document.getElementById('real-time-clock').innerText = '📅 ' + _0x92c7.toLocaleDateString('pt-BR') + ' - ⏰ ' + _0x92c7.toLocaleTimeString('pt-BR'); }
+        setInterval(_0x81b6, 1000); _0x81b6();
+        const _0xa1c8 = document.getElementById('volante');
+        for (let _0xb2d9 = 1; _0xb2d9 <= 25; _0xb2d9++) {
+            const _0xc3ea = document.createElement('button'); _0xc3ea.className = 'dezena'; _0xc3ea.innerText = (_0xb2d9 < 10 ? '0' + _0xb2d9 : _0xb2d9);
+            _0xc3ea.onclick = () => _0xd4fb(_0xb2d9, _0xc3ea); _0xa1c8.appendChild(_0xc3ea);
         }
-        setInterval(atualizarRelogio, 1000); atualizarRelogio();
-
-        const volanteDiv = document.getElementById('volante');
-        for (let i = 1; i <= 25; i++) {
-            const btn = document.createElement('button'); btn.className = 'dezena'; btn.innerText = (i < 10 ? '0' + i : i);
-            btn.onclick = () => toggleDezena(i, btn); volanteDiv.appendChild(btn);
+        function _0xd4fb(_0xe5a1, _0xf6b2) {
+            const _0x17c3 = _0x40d8.indexOf(_0xe5a1);
+            if (_0x17c3 > -1) { _0x40d8.splice(_0x17c3, 1); _0xf6b2.classList.remove('selected'); } 
+            else { if (_0x40d8.length < 20) { _0x40d8.push(_0xe5a1); _0xf6b2.classList.add('selected'); } else return alert("Limite de 20 dezenas atingido!"); }
+            _0x40d8.sort((_0x28d4,_0x39e5) => _0x28d4 - _0x39e5); _0x97b1();
         }
-
-        function toggleDezena(num, btn) {
-            const index = selecionadas.indexOf(num);
-            if (index > -1) { selecionadas.splice(index, 1); btn.classList.remove('selected'); } 
-            else { if (selecionadas.length < 20) { selecionadas.push(num); btn.classList.add('selected'); } else return alert("Limite de 20 dezenas atingido!"); }
-            selecionadas.sort((a, b) => a - b); atualizarEstatisticas();
+        function _0x2b1f() { _0x40d8 = []; document.querySelectorAll('.dezena').forEach(_0x40a6 => _0x40a6.classList.remove('selected')); _0x97b1(); }
+        function _0x9a3e() {
+            if (_0x40d8.length < 15 || _0x40d8.length > 20) return alert('Selecione de 15 a 20 dezenas!');
+            const _0x51b7 = _0x40d8.map(_0x62c8 => _0x62c8 < 10 ? '0' + _0x62c8 : _0x62c8).join(' '); const _0x73d9 = document.getElementById('txt-jogos');
+            if (_0x73d9.value.split('\n').includes(_0x51b7)) return alert('Jogo já adicionado!');
+            _0x73d9.value += (_0x73d9.value.trim() === "" ? "" : '\n') + _0x51b7; _0x33b4(); _0x2b1f();
         }
-
-        function limpar() { selecionadas = []; document.querySelectorAll('.dezena').forEach(b => b.classList.remove('selected')); atualizarEstatisticas(); }
-
-        function adicionarAoBolao() {
-            if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!');
-            const jogo = selecionadas.map(n => n < 10 ? '0' + n : n).join(' '); const ta = document.getElementById('txt-jogos');
-            if (ta.value.split('\n').includes(jogo)) return alert('Jogo já adicionado!');
-            ta.value += (ta.value.trim() === "" ? "" : '\n') + jogo; avaliarBolaoHTML(); limpar();
+        function _0x4ef2(_0x84e0) {
+            const _0x95f1 = _0x84e0.length;
+            if(_0x95f1 < 15 || _0x95f1 > 20) return { percentual: 0, cor: '#ccc', msg: 'Inválido' };
+            const _0xa602 = _0x30c6[_0x95f1];
+            const _0xb713 = _0x84e0.filter(_0xc824 => _0xc824 % 2 !== 0).length; const _0xd935 = _0x84e0.filter(_0xea46 => _0x20b4.includes(_0xea46)).length;
+            const _0xfb57 = _0x84e0.filter(_0x1068 => _0x10a2.includes(_0x1068)).length; const _0x2179 = _0x84e0.reduce((_0x328a,_0x439b) => _0x328a + _0x439b, 0);
+            let _0x54ac = 1; let _0x65bd = 1;
+            for(let _0x76ce=1; _0x76ce<_0x84e0.length; _0x76ce++) { if(_0x84e0[_0x76ce] === _0x84e0[_0x76ce-1] + 1) { _0x65bd++; if(_0x65bd > _0x54ac) _0x54ac = _0x65bd; } else _0x65bd = 1; }
+            let _0x87df = _0x50e1.length > 0 ? _0x84e0.filter(_0x98ea => _0x50e1.includes(_0x98ea)).length : 0;
+            const _0xa9fb = _0xa602.imp.includes(_0xb713); const _0xba0c = _0xa602.mol.includes(_0xd935);
+            const _0xcb1d = _0xa602.pri.includes(_0xfb57); const _0xdc2e = _0x54ac <= _0xa602.seq; 
+            const _0xed3f = (_0x2179 >= _0xa602.soma[0] && _0x2179 <= _0xa602.soma[1]); const _0xfe4a = _0xa602.rep.includes(_0x87df);
+            let _0x1f5b = [_0xa9fb, _0xba0c, _0xcb1d, _0xdc2e, _0xed3f]; if(_0x50e1.length > 0) _0x1f5b.push(_0xfe4a);
+            let _0x206c = Math.round((_0x1f5b.filter(Boolean).length / _0x1f5b.length) * 100);
+            let _0x317d = _0x206c === 100 ? 'var(--success)' : (_0x206c >= 66 ? 'var(--warning)' : 'var(--danger)');
+            let _0x428e = _0x206c === 100 ? 'Excelente' : (_0x206c >= 66 ? 'Bom Jogo' : 'Arriscado');
+            return { impares: _0xb713, moldura: _0xd935, primos: _0xfb57, soma: _0x2179, maxSeq: _0x54ac, repetidas: _0x87df, isImpOk: _0xa9fb, isMolOk: _0xba0c, isPriOk: _0xcb1d, isSeqOk: _0xdc2e, isSomaOk: _0xed3f, isRepOk: _0xfe4a, percentual: _0x206c, cor: _0x317d, msg: _0x428e, id: _0xa602 };
         }
-
-        function calcularNota(jogo) {
-            const size = jogo.length;
-            if(size < 15 || size > 20) return { percentual: 0, cor: '#ccc', msg: 'Inválido' };
-            const id = IDEAL[size];
-
-            const impares = jogo.filter(n => n % 2 !== 0).length; const moldura = jogo.filter(n => MOLDURA.includes(n)).length;
-            const primos = jogo.filter(n => PRIMOS.includes(n)).length; const soma = jogo.reduce((a, b) => a + b, 0);
-            let maxSeq = 1; let seqAtual = 1;
-            for(let i=1; i<jogo.length; i++) { if(jogo[i] === jogo[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; } else seqAtual = 1; }
-            let repetidas = ultimoSorteio.length > 0 ? jogo.filter(n => ultimoSorteio.includes(n)).length : 0;
-            
-            const isImpOk = id.imp.includes(impares); const isMolOk = id.mol.includes(moldura);
-            const isPriOk = id.pri.includes(primos); const isSeqOk = maxSeq <= id.seq; 
-            const isSomaOk = (soma >= id.soma[0] && soma <= id.soma[1]); const isRepOk = id.rep.includes(repetidas);
-            
-            let acertos = [isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk]; if(ultimoSorteio.length > 0) acertos.push(isRepOk);
-            let percentual = Math.round((acertos.filter(Boolean).length / acertos.length) * 100);
-            let cor = percentual === 100 ? 'var(--success)' : (percentual >= 66 ? 'var(--warning)' : 'var(--danger)');
-            let msg = percentual === 100 ? 'Excelente' : (percentual >= 66 ? 'Bom Jogo' : 'Arriscado');
-            return { impares, moldura, primos, soma, maxSeq, repetidas, isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk, percentual, cor, msg, id };
-        }
-
-        function atualizarEstatisticas() {
-            const size = selecionadas.length;
-            document.getElementById('contador').innerText = size;
-            document.getElementById('contador').style.color = (size >= 15 && size <= 20) ? 'var(--success)' : 'var(--primary-dark)';
-            
-            if (size < 15 || size > 20) {
-                document.querySelectorAll('.stat-value').forEach(e => { e.innerText = '-'; e.className = 'stat-value'; });
+        function _0x97b1() {
+            const _0x539f = _0x40d8.length;
+            document.getElementById('contador').innerText = _0x539f;
+            document.getElementById('contador').style.color = (_0x539f >= 15 && _0x539f <= 20) ? 'var(--success)' : 'var(--primary-dark)';
+            if (_0x539f < 15 || _0x539f > 20) {
+                document.querySelectorAll('.stat-value').forEach(_0x64a0 => { _0x64a0.innerText = '-'; _0x64a0.className = 'stat-value'; });
                 document.getElementById('stat-nota').innerText = '--'; document.getElementById('stat-nota').style.color = '#94a3b8';
                 document.getElementById('grade-panel').style.borderColor = '#cbd5e1'; 
-                document.getElementById('stat-nota-msg').innerText = size < 15 ? `Faltam ${15 - size} dezenas.` : `Excesso de dezenas.`; 
+                document.getElementById('stat-nota-msg').innerText = _0x539f < 15 ? `Faltam ${15 - _0x539f} dezenas.` : `Excesso de dezenas.`; 
                 document.getElementById('stat-nota-msg').style.color = '#64748b';
-                
-                const ideal = IDEAL[15];
-                updateBadge('stat-impares', '-', false, ideal.imp.join(' ou ')); updateBadge('stat-moldura', '-', false, ideal.mol.join(' ou '));
-                updateBadge('stat-primos', '-', false, ideal.pri.join(' a ')); updateBadge('stat-seq', '-', false, 'Máx '+ideal.seq);
-                updateBadge('stat-soma', '-', false, `${ideal.soma[0]}-${ideal.soma[1]}`); updateBadge('stat-rep', '-', false, ideal.rep.join(' ou '));
                 return;
             }
-            
-            const aval = calcularNota(selecionadas); const pares = size - aval.impares; const ideal = aval.id;
-            
-            updateBadge('stat-impares', `${aval.impares} / ${pares}`, aval.isImpOk, ideal.imp.join(' ou ')); 
-            updateBadge('stat-moldura', `${aval.moldura} / ${size - aval.moldura}`, aval.isMolOk, ideal.mol.join(' ou '));
-            updateBadge('stat-primos', aval.primos, aval.isPriOk, ideal.pri.join(' a ')); 
-            updateBadge('stat-seq', aval.maxSeq, aval.isSeqOk, 'Máx ' + ideal.seq);
-            updateBadge('stat-soma', aval.soma, aval.isSomaOk, `${ideal.soma[0]} - ${ideal.soma[1]}`);
-            
-            document.getElementById('stat-nota').innerText = `${aval.percentual}%`; 
-            document.getElementById('stat-nota').style.color = aval.cor; document.getElementById('grade-panel').style.borderColor = aval.cor; 
-            document.getElementById('stat-nota-msg').innerText = aval.msg + ` (${size} Dezenas)`; document.getElementById('stat-nota-msg').style.color = aval.cor;
-            
-            if (ultimoSorteio.length > 0) updateBadge('stat-rep', aval.repetidas, aval.isRepOk, ideal.rep.join(' ou '));
+            const _0x75b1 = _0x4ef2(_0x40d8); const _0x86c2 = _0x539f - _0x75b1.impares; const _0x97d3 = _0x75b1.id;
+            _0x2283('stat-impares', `${_0x75b1.impares} / ${_0x86c2}`, _0x75b1.isImpOk, _0x97d3.imp.join(' ou ')); 
+            _0x2283('stat-moldura', `${_0x75b1.moldura} / ${_0x539f - _0x75b1.moldura}`, _0x75b1.isMolOk, _0x97d3.mol.join(' ou '));
+            _0x2283('stat-primos', _0x75b1.primos, _0x75b1.isPriOk, _0x97d3.pri.join(' a ')); 
+            _0x2283('stat-seq', _0x75b1.maxSeq, _0x75b1.isSeqOk, 'Máx ' + _0x97d3.seq);
+            _0x2283('stat-soma', _0x75b1.soma, _0x75b1.isSomaOk, `${_0x97d3.soma[0]} - ${_0x97d3.soma[1]}`);
+            document.getElementById('stat-nota').innerText = `${_0x75b1.percentual}%`; 
+            document.getElementById('stat-nota').style.color = _0x75b1.cor; document.getElementById('grade-panel').style.borderColor = _0x75b1.cor; 
+            document.getElementById('stat-nota-msg').innerText = _0x75b1.msg + ` (${_0x539f} Dezenas)`; document.getElementById('stat-nota-msg').style.color = _0x75b1.cor;
+            if (_0x50e1.length > 0) _0x2283('stat-rep', _0x75b1.repetidas, _0x75b1.isRepOk, _0x97d3.rep.join(' ou '));
         }
-
-        function updateBadge(id, txt, isOk, idealTxt) { 
-            const el = document.getElementById(id); el.innerText = txt; el.className = 'stat-value ' + (isOk ? 'status-ok' : 'status-bad'); 
-            const small = el.nextElementSibling; if(small && idealTxt) small.innerText = `(Ideal: ${idealTxt})`;
+        function _0x2283(_0xa8e4, _0xb9f5, _0xcac6, _0xdbd7) { 
+            const _0xece8 = document.getElementById(_0xa8e4); _0xece8.innerText = _0xb9f5; _0xece8.className = 'stat-value ' + (_0xcac6 ? 'status-ok' : 'status-bad'); 
+            const _0xfdf9 = _0xece8.nextElementSibling; if(_0xfdf9 && _0xdbd7) _0xfdf9.innerText = `(Ideal: ${_0xdbd7})`;
         }
-        
-        function gerarAleatorios(qtd, max) { let nums = new Set(); while(nums.size < qtd) nums.add(Math.floor(Math.random()*max)+1); return Array.from(nums).sort((a,b)=>a-b); }
-        
-        function gerarJogoIdeal() {
-            limpar(); 
-            const size = parseInt(document.getElementById('tam-jogo') ? document.getElementById('tam-jogo').value : 15);
-            let t = []; let v = false;
-            while (!v) { t = gerarAleatorios(size, 25); v = calcularNota(t).percentual === 100; }
-            const botoes = document.querySelectorAll('.dezena');
-            t.forEach(num => { selecionadas.push(num); botoes[num - 1].classList.add('selected'); });
-            selecionadas.sort((a, b) => a - b); atualizarEstatisticas();
+        function _0x13c4(_0x14d5, _0x25e6) { let _0x36f7 = new Set(); while(_0x36f7.size < _0x14d5) _0x36f7.add(Math.floor(Math.random()*_0x25e6)+1); return Array.from(_0x36f7).sort((_0x47a,_0x58b)=>_0x47a-_0x58b); }
+        function _0x69d0(_0x79c) {
+            let _0x8ab = new Set();
+            let _0x9bc = [..._0x70a5]; _0x9bc.sort(() => Math.random() - 0.5);
+            let _0xac1 = Math.min(Math.floor(Math.random() * 3) + 2, _0x9bc.length);
+            for(let _0xbd2 = 0; _0xbd2 < _0xac1; _0xbd2++) { _0x8ab.add(_0x9bc[_0xbd2]); }
+            while(_0x8ab.size < _0x79c) { let _0xce3 = Math.floor(Math.random() * 25) + 1; _0x8ab.add(_0xce3); }
+            return Array.from(_0x8ab).sort((_0xdf4,_0xe05)=>_0xdf4-_0xe05);
         }
-        
-        function gerarMultiplos() {
-            const qtd = parseInt(document.getElementById('qtd-jogos').value) || 1;
-            const size = parseInt(document.getElementById('tam-jogo').value) || 15;
-            let ta = document.getElementById('txt-jogos'); let res = [];
-            for(let i=0; i<qtd; i++) {
-                let t = []; let v = false;
-                while (!v) { t = gerarAleatorios(size, 25); v = calcularNota(t).percentual === 100; }
-                res.push(t.map(n => n < 10 ? '0'+n : n).join(' '));
+        function _0x5d8c() {
+            _0x2b1f(); 
+            const _0xf16 = parseInt(document.getElementById('tam-jogo') ? document.getElementById('tam-jogo').value : 15);
+            let _0x027 = []; let _0x138 = false; let _0x249 = 0;
+            while (!_0x138 && _0x249 < 5000) { _0x027 = _0x69d0(_0xf16); _0x138 = _0x4ef2(_0x027).percentual === 100; _0x249++; }
+            const _0x35a = document.querySelectorAll('.dezena');
+            _0x027.forEach(_0x46b => { _0x40d8.push(_0x46b); _0x35a[_0x46b - 1].classList.add('selected'); });
+            _0x40d8.sort((_0x57c, _0x68d) => _0x57c - _0x68d); _0x97b1();
+        }
+        function _0x77c1() {
+            const _0x79e = parseInt(document.getElementById('qtd-jogos').value) || 1;
+            const _0x8af = parseInt(document.getElementById('tam-jogo').value) || 15;
+            let _0x9b0 = document.getElementById('txt-jogos'); let _0xac1 = [];
+            for(let _0xbd2=0; _0xbd2<_0x79e; _0xbd2++) {
+                let _0xce3 = []; let _0xdf4 = false; let _0xe05 = 0;
+                while (!_0xdf4 && _0xe05 < 5000) { _0xce3 = _0x69d0(_0x8af); _0xdf4 = _0x4ef2(_0xce3).percentual === 100; _0xe05++; }
+                _0xac1.push(_0xce3.map(_0xf16 => _0xf16 < 10 ? '0'+_0xf16 : _0xf16).join(' '));
             }
-            ta.value = res.join('\n'); avaliarBolaoHTML();
+            _0x9b0.value = _0xac1.join('\n'); _0x33b4();
         }
-        
-        function lerJogosDaTextArea() {
-            const txt = document.getElementById('txt-jogos').value.trim(); if (!txt) return [];
-            return txt.split('\n').map(l => {
-                const nums = l.trim().split(/\s+/).map(Number).filter(n => n>=1 && n<=25 && !isNaN(n));
-                return [...new Set(nums)].sort((a,b)=>a-b);
-            }).filter(u => u.length >= 15 && u.length <= 20);
+        function _0xfa1(_0x012) {
+            const _0x123 = _0x012.trim(); if (!_0x123) return [];
+            return _0x123.split('\n').map(_0x234 => {
+                const _0x345 = _0x234.trim().split(/\s+/).map(Number).filter(_0x456 => _0x456>=1 && _0x456<=25 && !isNaN(_0x456));
+                return [...new Set(_0x345)].sort((_0x567,_0x678)=>_0x567-_0x678);
+            }).filter(_0x789 => _0x789.length >= 15 && _0x789.length <= 20);
         }
-        
-        function avaliarBolaoHTML() {
-            const jogos = lerJogosDaTextArea(); const div = document.getElementById('bolao-results');
-            if (jogos.length === 0) { div.style.display = 'block'; div.innerHTML = '<span style="color:red; font-weight:600;">Sem jogos válidos (somente de 15 a 20 dezenas).</span>'; return; }
-            let soma = 0; let html = '<h3 style="color:var(--primary-dark); font-size:1.1rem; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">📊 Avaliação</h3>';
-            jogos.forEach((j, i) => {
-                const aval = calcularNota(j); soma += aval.percentual;
-                html += `<div class="bolao-item"><span><strong>J${i+1} (${j.length}dz):</strong> ${j.map(n=>n<10?'0'+n:n).join(' ')}</span><span style="color:${aval.cor}; font-weight:700;">Nota: ${aval.percentual}%</span></div>`;
+        function _0x33b4() {
+            const _0x89a = _0xfa1(); const _0x9ab = document.getElementById('bolao-results');
+            if (_0x89a.length === 0) { _0x9ab.style.display = 'block'; _0x9ab.innerHTML = '<span style="color:red; font-weight:600;">Sem jogos válidos (somente de 15 a 20 dezenas).</span>'; return; }
+            let _0xabc = 0; let _0xbcd = '<h3 style="color:var(--primary-dark); font-size:1.1rem; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">📊 Avaliação</h3>';
+            _0x89a.forEach((_0xcde, _0xdef) => {
+                const _0xefa = _0x4ef2(_0xcde); _0xabc += _0xefa.percentual;
+                _0xbcd += `<div class="bolao-item"><span><strong>J${_0xdef+1} (${_0xcde.length}dz):</strong> ${_0xcde.map(_0xf01=>_0xf01<10?'0'+_0xf01:_0xf01).join(' ')}</span><span style="color:${_0xefa.cor}; font-weight:700;">Nota: ${_0xefa.percentual}%</span></div>`;
             });
-            const media = Math.round(soma / jogos.length); let cor = media === 100 ? 'var(--success)' : (media >= 66 ? 'var(--warning)' : 'var(--danger)');
-            html += `<div style="margin-top:15px;text-align:center;font-size:1.2rem;font-weight:700;padding:12px;border:2px dashed ${cor}; border-radius:10px; color: ${cor};">Nota Geral: ${media}%</div>`;
-            div.innerHTML = html; div.style.display = 'block';
+            const _0x012 = Math.round(_0xabc / _0x89a.length); let _0x123 = _0x012 === 100 ? 'var(--success)' : (_0x012 >= 66 ? 'var(--warning)' : 'var(--danger)');
+            _0xbcd += `<div style="margin-top:15px;text-align:center;font-size:1.2rem;font-weight:700;padding:12px;border:2px dashed ${_0x123}; border-radius:10px; color: ${_0x123};">Nota Geral: ${_0x012}%</div>`;
+            _0x9ab.innerHTML = _0xbcd; _0x9ab.style.display = 'block';
         }
-        
-        function enviarWhatsAppUnicoTexto() {
-            if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!');
-            const aval = calcularNota(selecionadas);
-            const msg = `🍀 *Lotofácil (${selecionadas.length} dezenas)*\n\nDezenas: ${selecionadas.map(n => n < 10 ? '0'+n : n).join(' ')}\n📊 *Nota:* ${aval.percentual}% (${aval.msg})`;
-            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+        function _0x112f() {
+            if (_0x40d8.length < 15 || _0x40d8.length > 20) return alert('Selecione de 15 a 20 dezenas!');
+            const _0x234 = _0x4ef2(_0x40d8);
+            const _0x345 = `🍀 *Lotofácil (${_0x40d8.length} dezenas)*\n\nDezenas: ${_0x40d8.map(_0x456 => _0x456 < 10 ? '0'+_0x456 : _0x456).join(' ')}\n📊 *Nota:* ${_0x234.percentual}% (${_0x234.msg})`;
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(_0x345), '_blank');
         }
-        
-        function enviarWhatsAppMassaTexto() {
-            const jogos = lerJogosDaTextArea(); if (jogos.length === 0) return alert('Sem jogos válidos!');
-            let msg = `🍀 *Bolão (${jogos.length} Jogos)*\n\n`; let soma = 0;
-            jogos.forEach((j, i) => { const aval = calcularNota(j); soma += aval.percentual; msg += `*J${i+1} (${j.length}dz):* ${j.map(n=>n<10?'0'+n:n).join(' ')} - (${aval.percentual}%)\n`; });
-            msg += `\n📊 *Média Geral:* ${Math.round(soma / jogos.length)}%`; window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+        function _0x88f2() {
+            const _0x567 = _0xfa1(); if (_0x567.length === 0) return alert('Sem jogos válidos!');
+            let _0x678 = `🍀 *Bolão (${_0x567.length} Jogos)*\n\n`; let _0x789 = 0;
+            _0x567.forEach((_0x89a, _0x9ab) => { const _0xabc = _0x4ef2(_0x89a); _0x789 += _0xabc.percentual; _0x678 += `*J${_0x9ab+1} (${_0x89a.length}dz):* ${_0x89a.map(_0xbcd=>_0xbcd<10?'0'+_0xbcd:_0xbcd).join(' ')} - (${_0xabc.percentual}%)\n`; });
+            _0x678 += `\n📊 *Média Geral:* ${Math.round(_0x789 / _0x567.length)}%`; window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(_0x678), '_blank');
         }
-        
-        async function gerarECompartilharCanvas(jogosObjArray, isBolao) {
-            const container = document.getElementById('export-canvas-container'); const listDiv = document.getElementById('export-games-list'); listDiv.innerHTML = ''; let somaNotas = 0;
-            jogosObjArray.forEach((jogo, idx) => {
-                const aval = calcularNota(jogo); somaNotas += aval.percentual;
-                const div = document.createElement('div'); div.style = 'margin-bottom:10px; padding:10px; background:#f4f7f6; border-radius:5px;';
-                div.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${idx+1} (${jogo.length}dz)</div><div style="font-weight:bold; font-size:1.1rem; letter-spacing:2px; color:#444;">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div><div style="font-size:0.9rem; font-weight:bold; color: ${aval.cor};">Nota: ${aval.percentual}%</div>`;
-                listDiv.appendChild(div);
+        async function _0xcde(_0xdef, _0xefa) {
+            const _0xf01 = document.getElementById('export-canvas-container'); const _0x123 = document.getElementById('export-games-list'); _0x123.innerHTML = ''; let _0x234 = 0;
+            _0xdef.forEach((_0x345, _0x456) => {
+                const _0x567 = _0x4ef2(_0x345); _0x234 += _0x567.percentual;
+                const _0x678 = document.createElement('div'); _0x678.style = 'margin-bottom:10px; padding:10px; background:#f4f7f6; border-radius:5px;';
+                _0x678.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${_0x456+1} (${_0x345.length}dz)</div><div style="font-weight:bold; font-size:1.1rem; letter-spacing:2px; color:#444;">${_0x345.map(_0x789=>_0x789<10?'0'+_0x789:_0x789).join(' ')}</div><div style="font-size:0.9rem; font-weight:bold; color: ${_0x567.cor};">Nota: ${_0x567.percentual}%</div>`;
+                _0x123.appendChild(_0x678);
             });
-            if (isBolao && jogosObjArray.length > 1) {
-                const media = Math.round(somaNotas / jogosObjArray.length); let corMedia = media === 100 ? 'var(--success)' : (media >= 66 ? 'var(--warning)' : 'var(--danger)');
-                const divMedia = document.createElement('div'); divMedia.style = 'margin-top:15px; text-align:center; font-size:1.1rem; font-weight:bold;';
-                divMedia.innerHTML = `Nota do Bolão: <br><span style="color:${corMedia}">${media}%</span>`; listDiv.appendChild(divMedia);
+            if (_0xefa && _0xdef.length > 1) {
+                const _0x89a = Math.round(_0x234 / _0xdef.length); let _0x9ab = _0x89a === 100 ? 'var(--success)' : (_0x89a >= 66 ? 'var(--warning)' : 'var(--danger)');
+                const _0xabc = document.createElement('div'); _0xabc.style = 'margin-top:15px; text-align:center; font-size:1.1rem; font-weight:bold;';
+                _0xabc.innerHTML = `Nota do Bolão: <br><span style="color:${_0x9ab}">${_0x89a}%</span>`; _0x123.appendChild(_0xabc);
             }
-            container.style.top = '0'; container.style.left = '0'; container.style.zIndex = '-1';
+            _0xf01.style.top = '0'; _0xf01.style.left = '0'; _0xf01.style.zIndex = '-1';
             try {
-                const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' }); container.style.top = '-9999px'; container.style.left = '-9999px'; 
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], 'jogos.png', { type: 'image/png' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Jogos' }); } catch (err) {} } 
-                    else { const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'jogos.png'; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url); alert("Baixado para compartilhar!"); }
+                const _0xbcd = await html2canvas(_0xf01, { scale: 2, backgroundColor: '#ffffff' }); _0xf01.style.top = '-9999px'; _0xf01.style.left = '-9999px'; 
+                _0xbcd.toBlob(async (_0xcde) => {
+                    const _0xdef = new File([_0xcde], 'jogos.png', { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [_0xdef] })) { try { await navigator.share({ files: [_0xdef], title: 'Jogos' }); } catch (_0xefa) {} } 
+                    else { const _0xf01 = window.URL.createObjectURL(_0xcde); const _0x123 = document.createElement('a'); _0x123.href = _0xf01; _0x123.download = 'jogos.png'; document.body.appendChild(_0x123); _0x123.click(); document.body.removeChild(_0x123); window.URL.revokeObjectURL(_0xf01); alert("Baixado para compartilhar!"); }
                 });
-            } catch (e) { container.style.top = '-9999px'; container.style.left = '-9999px'; }
+            } catch (_0x234) { _0xf01.style.top = '-9999px'; _0xf01.style.left = '-9999px'; }
         }
-        function enviarWhatsAppUnicoImagem() { if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!'); gerarECompartilharCanvas([selecionadas], false); }
-        function enviarWhatsAppMassaImagem() { const j = lerJogosDaTextArea(); if (j.length === 0) return alert('Caixa vazia!'); gerarECompartilharCanvas(j, true); }
-
-        async function carregarDadosDoRobo() {
-            const statusDiv = document.getElementById('api-status');
+        function _0x448a() { if (_0x40d8.length < 15 || _0x40d8.length > 20) return alert('Selecione de 15 a 20 dezenas!'); _0xcde([_0x40d8], false); }
+        function _0x66e5() { const _0x345 = _0xfa1(); if (_0x345.length === 0) return alert('Caixa vazia!'); _0xcde(_0x345, true); }
+        async function _0xef1() {
+            const _0xf02 = document.getElementById('api-status');
             try {
-                let bypass = new Date().getTime(); let hist = null;
-                const rotas = ['./resultados.json?v=' + bypass, 'https://raw.githubusercontent.com/renatocosta93/painel-loto/main/resultados.json?v=' + bypass];
-                for(let r of rotas) { try { let req = await fetch(r, { cache: 'no-store' }); if(req.ok) { hist = await req.json(); if(hist.length>0) break; } } catch(e) {} }
-                if (!hist) throw new Error("Tabela ausente.");
-                
-                let r = hist[0]; let a = hist[hist.length - 1];
-                ultimoSorteio = r.dezenas; dadosCarregados = true;
-                
-                document.getElementById('header-next-draw-info').innerHTML = `<span style="font-size: 1.1rem; color: #dcfce7; font-weight: 700;">🟢 Painel Conectado</span><br><div class="header-subtitle">Analisando 50 Jogos: do <strong>${a.concurso}</strong> ao <strong>${r.concurso}</strong></div>`;
-                
-                const formataBRL = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                
-                let tagAcumulado = r.acumulou === true ? `<span class="highlight-acumulou">⚠️ ACUMULADO</span>` : ``;
-                let htmlProximo = `<div class="draw-info-box" style="border-left-color: var(--info);"><h3 style="color: var(--info);">🔮 Próximo Sorteio (${r.proxConcurso || '-'})</h3><div class="draw-details"><strong>Data:</strong> ${r.proxData || 'A definir'}</div><div class="draw-details"><strong>Estimativa:</strong> ${r.proxPremio ? formataBRL(r.proxPremio) : 'Apurando...'} ${tagAcumulado}</div></div>`;
-
-                let textoGanhadores = 'Aguardando o robô processar o rateio...';
-                if (r.acumulou === true) textoGanhadores = `<span class="highlight-acumulou">Acumulou! 0 ganhadores.</span>`;
-                else if (r.ganhadores !== undefined && r.ganhadores > 0) textoGanhadores = `<span class="highlight-success">🎉 ${r.ganhadores} Ganhador(es)!</span> Prêmio: ${r.premio ? formataBRL(r.premio) : '-'}`;
-                else if (r.ganhadores === 0 && r.acumulou === false) textoGanhadores = `Nenhum ganhador reportado.`;
-
-                let htmlAtual = `<div class="draw-info-box" style="border-left-color: var(--success);"><h3 style="color: var(--success);">🏆 Último Sorteio (${r.concurso})</h3><div class="draw-details"><strong>Data:</strong> ${r.data}</div><div class="draw-details"><strong>Situação:</strong> ${textoGanhadores}</div><div style="margin-top: 15px; font-weight: 700; color: var(--text-muted); font-size:0.9rem;">Dezenas Sorteadas:</div><div class="badge-list" id="latest-draw-numbers" style="margin-top: 6px;"></div></div>`;
-                document.getElementById('latest-draw-container').innerHTML = htmlProximo + htmlAtual;
-                
-                // --- INTELIGÊNCIA MATEMÁTICA ESTATÍSTICA ---
-                let stats = {}; for(let n=1; n<=25; n++) stats[n] = { freq: 0, history: [] };
-                
-                for(let i=hist.length-1; i>=0; i--) {
-                    for(let n=1; n<=25; n++) {
-                        let isDrawn = hist[i].dezenas.includes(n);
-                        if(isDrawn) stats[n].freq++;
-                        stats[n].history.push(isDrawn);
+                let _0x1a3 = new Date().getTime(); let _0x2b4 = null;
+                const _0x3c5 = ['./resultados.json?v=' + _0x1a3, 'https://raw.githubusercontent.com/renatocosta93/painel-loto/main/resultados.json?v=' + _0x1a3];
+                for(let _0x4d6 of _0x3c5) { try { let _0x5e7 = await fetch(_0x4d6, { cache: 'no-store' }); if(_0x5e7.ok) { _0x2b4 = await _0x5e7.json(); if(_0x2b4.length>0) break; } } catch(_0x890) {} }
+                if (!_0x2b4) throw new Error("Tabela ausente.");
+                let _0x6f8 = _0x2b4[0]; let _0x709 = _0x2b4[_0x2b4.length - 1];
+                _0x50e1 = _0x6f8.dezenas; _0x60f3 = true;
+                document.getElementById('header-next-draw-info').innerHTML = `<span style="font-size: 1.1rem; color: #dcfce7; font-weight: 700;">🟢 Painel Conectado</span><br><div class="header-subtitle">Analisando 50 Jogos: do <strong>${_0x709.concurso}</strong> ao <strong>${_0x6f8.concurso}</strong></div>`;
+                const _0x81a = (_0x91b) => Number(_0x91b).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                let _0xa2c = _0x6f8.acumulou === true ? `<span class="highlight-acumulou">⚠️ ACUMULADO</span>` : ``;
+                let _0xb3d = `<div class="draw-info-box" style="border-left-color: var(--info);"><h3 style="color: var(--info);">🔮 Próximo Sorteio (${_0x6f8.proxConcurso || '-'})</h3><div class="draw-details"><strong>Data:</strong> ${_0x6f8.proxData || 'A definir'}</div><div class="draw-details"><strong>Estimativa:</strong> ${_0x6f8.proxPremio ? _0x81a(_0x6f8.proxPremio) : 'Apurando...'} ${_0xa2c}</div></div>`;
+                let _0xc4e = 'Aguardando o robô processar o rateio...';
+                if (_0x6f8.acumulou === true) _0xc4e = `<span class="highlight-acumulou">Acumulou! 0 ganhadores.</span>`;
+                else if (_0x6f8.ganhadores !== undefined && _0x6f8.ganhadores > 0) _0xc4e = `<span class="highlight-success">🎉 ${_0x6f8.ganhadores} Ganhador(es)!</span> Prêmio: ${_0x6f8.premio ? _0x81a(_0x6f8.premio) : '-'}`;
+                else if (_0x6f8.ganhadores === 0 && _0x6f8.acumulou === false) _0xc4e = `Nenhum ganhador reportado.`;
+                let _0xd5f = `<div class="draw-info-box" style="border-left-color: var(--success);"><h3 style="color: var(--success);">🏆 Último Sorteio (${_0x6f8.concurso})</h3><div class="draw-details"><strong>Data:</strong> ${_0x6f8.data}</div><div class="draw-details"><strong>Situação:</strong> ${_0xc4e}</div><div style="margin-top: 15px; font-weight: 700; color: var(--text-muted); font-size:0.9rem;">Dezenas Sorteadas:</div><div class="badge-list" id="latest-draw-numbers" style="margin-top: 6px;"></div></div>`;
+                document.getElementById('latest-draw-container').innerHTML = _0xb3d + _0xd5f;
+                let _0xe6a = {}; for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) _0xe6a[_0xf7b] = { freq: 0, history: [] };
+                for(let _0x18c=_0x2b4.length-1; _0x18c>=0; _0x18c--) {
+                    for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) {
+                        let _0x29d = _0x2b4[_0x18c].dezenas.includes(_0xf7b);
+                        if(_0x29d) _0xe6a[_0xf7b].freq++;
+                        _0xe6a[_0xf7b].history.push(_0x29d);
                     }
                 }
-
-                let histAsc = [...hist].reverse();
-                let ciclosFechados = [];
-                let setC = new Set();
-                let contC = 0;
-                let inicioCiclo = 0;
-                for(let s of histAsc) {
-                    if (setC.size === 0) inicioCiclo = s.concurso;
-                    contC++;
-                    s.dezenas.forEach(d => setC.add(d));
-                    if(setC.size === 25) {
-                        ciclosFechados.push(`do ${inicioCiclo} ao ${s.concurso}`);
-                        setC.clear();
-                        contC = 0;
-                    }
+                let _0x3ae = [..._0x2b4].reverse(); let _0x4bf = []; let _0x5c0 = new Set(); let _0x6d1 = 0; let _0x7e2 = 0;
+                for(let _0x8f3 of _0x3ae) {
+                    if (_0x5c0.size === 0) _0x7e2 = _0x8f3.concurso;
+                    _0x6d1++; _0x8f3.dezenas.forEach(_0x904 => _0x5c0.add(_0x904));
+                    if(_0x5c0.size === 25) { _0x4bf.push(`do ${_0x7e2} ao ${_0x8f3.concurso}`); _0x5c0.clear(); _0x6d1 = 0; }
                 }
-
-                let faltam = [];
-                for(let i=1; i<=25; i++) { if(!setC.has(i)) faltam.push({d: i, info: ''}); }
-                
-                const renderBadgesBasic = (cid, arr, css) => {
-                    const c = document.getElementById(cid); c.innerHTML = '';
-                    arr.forEach(item => {
-                        let s = document.createElement('span'); s.className = 'badge ' + css;
-                        s.innerHTML = `<span>${item.d < 10 ? '0'+item.d : item.d}</span>` + (item.info ? ` <small style="opacity:0.9; font-weight:600; font-size:0.75rem;">(${item.info})</small>` : '');
-                        c.appendChild(s);
+                let _0xa15 = []; for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) { if(!_0x5c0.has(_0xf7b)) _0xa15.push({d: _0xf7b, info: ''}); }
+                _0x70a5 = _0xa15.map(_0xb26 => _0xb26.d);
+                const _0xc37 = (_0xd48, _0xe59, _0xf6a) => {
+                    const _0x07b = document.getElementById(_0xd48); _0x07b.innerHTML = '';
+                    _0xe59.forEach(_0x18c => {
+                        let _0x29d = document.createElement('span'); _0x29d.className = 'badge ' + _0xf6a;
+                        _0x29d.innerHTML = `<span>${_0x18c.d < 10 ? '0'+_0x18c.d : _0x18c.d}</span>` + (_0x18c.info ? ` <small style="opacity:0.9; font-weight:600; font-size:0.75rem;">(${_0x18c.info})</small>` : '');
+                        _0x07b.appendChild(_0x29d);
                     });
                 };
-
-                if(faltam.length > 0) {
-                    renderBadgesBasic('badge-ciclo', faltam, 'bg-cycle');
-                    document.getElementById('desc-ciclo').innerHTML = `Faltam estas dezenas para fechar o ciclo. O ciclo atual está no <strong>${contC}º concurso</strong>.`;
-                } else {
-                    document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou neste sorteio!</span>';
-                    document.getElementById('desc-ciclo').innerHTML = `Todas as 25 dezenas já saíram. Um novo ciclo começará no próximo sorteio.`;
-                }
-
-                if(ciclosFechados.length > 0) {
-                    let histStr = ciclosFechados.slice(-4).join(' ➔ ');
-                    document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${ciclosFechados.length} ciclos concluídos nos últimos 50 jogos. Últimos: <span style="color:var(--primary-dark);">${histStr}</span>.`;
-                } else { document.getElementById('historico-ciclos').style.display = 'none'; }
-                
-                let ranking = Object.keys(stats).map(n => ({ d: Number(n), freq: stats[n].freq })).sort((a,b) => b.freq - a.freq);
-                renderBadgesBasic('latest-draw-numbers', ultimoSorteio.map(n => ({d: n, info: stats[n].freq+'x'})), 'bg-drawn');
-                renderBadgesBasic('badge-quentes', ranking.slice(0, 8).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-hot');
-                renderBadgesBasic('badge-medias', ranking.slice(8, 17).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-med');
-                renderBadgesBasic('badge-frias', ranking.slice(17, 25).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-cold');
-                
-                let atrasos = []; let quebras = [];
-                for(let n=1; n<=25; n++) {
-                    let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
-                    for(let j=0; j<stats[n].history.length; j++) {
-                        if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
-                        else { aSeq++; cSeq = 0; if(aSeq > mAbs) mAbs = aSeq; }
+                if(_0xa15.length > 0) { _0xc37('badge-ciclo', _0xa15, 'bg-cycle'); document.getElementById('desc-ciclo').innerHTML = `Faltam estas dezenas para fechar o ciclo. O ciclo atual está no <strong>${_0x6d1}º concurso</strong>.`; } 
+                else { document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou neste sorteio!</span>'; document.getElementById('desc-ciclo').innerHTML = `Todas as 25 dezenas já saíram.`; }
+                if(_0x4bf.length > 0) { document.getElementById('historico-ciclos').innerHTML = `<strong>📊 Histórico:</strong> Tivemos ${_0x4bf.length} ciclos concluídos nos últimos 50 jogos. Últimos: <span style="color:var(--primary-dark);">${_0x4bf.slice(-4).join(' ➔ ')}</span>.`; } 
+                else { document.getElementById('historico-ciclos').style.display = 'none'; }
+                let _0x38c = Object.keys(_0xe6a).map(_0xf7b => ({ d: Number(_0xf7b), freq: _0xe6a[_0xf7b].freq })).sort((_0x49d,_0x5ae)=>_0x5ae.freq-_0x49d);
+                _0xc37('latest-draw-numbers', _0x6f8.dezenas.map(_0xf7b => ({d: _0xf7b, info: _0xe6a[_0xf7b].freq+'x'})), 'bg-drawn');
+                _0xc37('badge-quentes', _0x38c.slice(0, 8).map(_0x6bf=>({d:_0x6bf.d, info: _0x6bf.freq+'x'})), 'bg-hot');
+                _0xc37('badge-medias', _0x38c.slice(8, 17).map(_0x6bf=>({d:_0x6bf.d, info: _0x6bf.freq+'x'})), 'bg-med');
+                _0xc37('badge-frias', _0x38c.slice(17, 25).map(_0x6bf=>({d:_0x6bf.d, info: _0x6bf.freq+'x'})), 'bg-cold');
+                let _0x49d = []; let _0x5ae = [];
+                for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) {
+                    let _0x6bf = 0, _0x7c0 = 0, _0x8d1 = 0, _0x9e2 = 0;
+                    for(let _0xa3f=0; _0xa3f<_0xe6a[_0xf7b].history.length; _0xa3f++) {
+                        if(_0xe6a[_0xf7b].history[_0xa3f]) { _0x7c0++; _0x6bf = 0; if(_0x7c0 > _0x9e2) _0x9e2 = _0x7c0; } 
+                        else { _0x6bf++; _0x7c0 = 0; if(_0x6bf > _0x8d1) _0x8d1 = _0x6bf; }
                     }
-                    
-                    let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
-                    let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
-                    
-                    if(curA >= mAbs - 1 && curA >= 2) {
-                        let total = 0; let hits = 0; let temp = 0;
-                        for(let j=0; j<stats[n].history.length - 1; j++) {
-                            if(!stats[n].history[j]) temp++; else temp = 0;
-                            if(temp === curA) { total++; if(stats[n].history[j+1]) hits++; }
+                    let _0xb4a = 0; for(let _0xa3f=_0xe6a[_0xf7b].history.length-1; _0xa3f>=0; _0xa3f--) { if(!_0xe6a[_0xf7b].history[_0xa3f]) _0xb4a++; else break; }
+                    let _0xc5b = 0; for(let _0xa3f=_0xe6a[_0xf7b].history.length-1; _0xa3f>=0; _0xa3f--) { if(_0xe6a[_0xf7b].history[_0xa3f]) _0xc5b++; else break; }
+                    if(_0xb4a >= _0x8d1 - 1 && _0xb4a >= 2) {
+                        let _0xd6c = 0, _0xe7d = 0, _0xf8e = 0;
+                        for(let _0xa3f=0; _0xa3f<_0xe6a[_0xf7b].history.length - 1; _0xa3f++) {
+                            if(!_0xe6a[_0xf7b].history[_0xa3f]) _0xf8e++; else _0xf8e = 0;
+                            if(_0xf8e === _0xb4a) { _0xd6c++; if(_0xe6a[_0xf7b].history[_0xa3f+1]) _0xe7d++; }
                         }
-                        let taxa = total > 0 ? Math.round((hits/total)*100) : 100;
-                        atrasos.push({d: n, curA: curA, mAbs: mAbs, taxa: taxa});
+                        let _0x19f = _0xd6c > 0 ? Math.round((_0xe7d/_0xd6c)*100) : 100;
+                        _0x49d.push({d: _0xf7b, curA: _0xb4a, mAbs: _0x8d1, taxa: _0x19f});
                     }
-                    
-                    if(curC >= mCons - 1 && curC >= 3) {
-                        let total = 0; let fails = 0; let temp = 0;
-                        for(let j=0; j<stats[n].history.length - 1; j++) {
-                            if(stats[n].history[j]) temp++; else temp = 0;
-                            if(temp === curC) { total++; if(!stats[n].history[j+1]) fails++; }
+                    if(_0xc5b >= _0x9e2 - 1 && _0xc5b >= 3) {
+                        let _0xd6c = 0, _0xe7d = 0, _0xf8e = 0;
+                        for(let _0xa3f=0; _0xa3f<_0xe6a[_0xf7b].history.length - 1; _0xa3f++) {
+                            if(_0xe6a[_0xf7b].history[_0xa3f]) _0xf8e++; else _0xf8e = 0;
+                            if(_0xf8e === _0xc5b) { _0xd6c++; if(!_0xe6a[_0xf7b].history[_0xa3f+1]) _0xe7d++; }
                         }
-                        let taxa = total > 0 ? Math.round((fails/total)*100) : 100;
-                        quebras.push({d: n, curC: curC, mCons: mCons, taxa: taxa});
+                        let _0x19f = _0xd6c > 0 ? Math.round((_0xe7d/_0xd6c)*100) : 100;
+                        _0x5ae.push({d: _0xf7b, curC: _0xc5b, mCons: _0x9e2, taxa: _0x19f});
                     }
                 }
-                
-                const cAtrasos = document.getElementById('badge-atrasos'); cAtrasos.innerHTML = '';
-                if(atrasos.length > 0) {
-                    atrasos.sort((a,b) => b.taxa - a.taxa).forEach(item => {
-                        let s = document.createElement('div'); s.className = 'badge-pred';
-                        s.innerHTML = `<div class="badge-pred-num">${item.d < 10 ? '0'+item.d : item.d}</div><div class="badge-pred-info"><span>Atual: ${item.curA} | Máx: ${item.mAbs}</span><span class="text-estouro">Estouro: ${item.taxa}%</span></div>`;
-                        cAtrasos.appendChild(s);
+                const _0x6bf = document.getElementById('badge-atrasos'); _0x6bf.innerHTML = '';
+                if(_0x49d.length > 0) {
+                    _0x49d.sort((_0xa,_0xb) => _0xb.taxa - _0xa.taxa).forEach(_0xc => {
+                        let _0xd = document.createElement('div'); _0xd.className = 'badge-pred';
+                        _0xd.innerHTML = `<div class="badge-pred-num">${_0xc.d < 10 ? '0'+_0xc.d : _0xc.d}</div><div class="badge-pred-info"><span>Atual: ${_0xc.curA} | Máx: ${_0xc.mAbs}</span><span class="text-estouro">Estouro: ${_0xc.taxa}%</span></div>`;
+                        _0x6bf.appendChild(_0xd);
                     });
-                } else cAtrasos.innerHTML = '<span style="font-size:0.9rem; color:#78350f;">Nenhuma dezena em atraso crítico extremo.</span>';
-                
-                const cQuebras = document.getElementById('badge-quebras'); cQuebras.innerHTML = '';
-                if(quebras.length > 0) {
-                    quebras.sort((a,b) => b.taxa - a.taxa).forEach(item => {
-                        let s = document.createElement('div'); s.className = 'badge-pred';
-                        s.innerHTML = `<div class="badge-pred-num">${item.d < 10 ? '0'+item.d : item.d}</div><div class="badge-pred-info"><span>Atual: ${item.curC} | Máx: ${item.mCons}</span><span class="text-falha">Falha: ${item.taxa}%</span></div>`;
-                        cQuebras.appendChild(s);
+                } else _0x6bf.innerHTML = '<span style="font-size:0.9rem; color:#78350f;">Nenhuma dezena em atraso crítico extremo.</span>';
+                const _0x7c0 = document.getElementById('badge-quebras'); _0x7c0.innerHTML = '';
+                if(_0x5ae.length > 0) {
+                    _0x5ae.sort((_0xa,_0xb) => _0xb.taxa - _0xa.taxa).forEach(_0xc => {
+                        let _0xd = document.createElement('div'); _0xd.className = 'badge-pred';
+                        _0xd.innerHTML = `<div class="badge-pred-num">${_0xc.d < 10 ? '0'+_0xc.d : _0xc.d}</div><div class="badge-pred-info"><span>Atual: ${_0xc.curC} | Máx: ${_0xc.mCons}</span><span class="text-falha">Falha: ${_0xc.taxa}%</span></div>`;
+                        _0x7c0.appendChild(_0xd);
                     });
-                } else cQuebras.innerHTML = '<span style="font-size:0.9rem; color:#1e40af;">Nenhuma sequência crítica no momento.</span>';
-
-                let htmlHM = `<table class="heatmap-table"><thead><tr><th>Conc.</th>`;
-                for(let i=1; i<=25; i++) htmlHM += `<th>${i < 10 ? '0'+i : i}</th>`;
-                htmlHM += `</tr></thead><tbody>`;
-                hist.slice(0, 10).forEach(s => {
-                    htmlHM += `<tr><td><strong>${s.concurso}</strong></td>`;
-                    for(let i=1; i<=25; i++) {
-                        if(s.dezenas.includes(i)) htmlHM += `<td class="hm-drawn">X</td>`;
-                        else htmlHM += `<td class="hm-empty"></td>`;
+                } else _0x7c0.innerHTML = '<span style="font-size:0.9rem; color:#1e40af;">Nenhuma sequência crítica no momento.</span>';
+                let _0x8d1 = `<table class="heatmap-table"><thead><tr><th>Conc.</th>`;
+                for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) _0x8d1 += `<th>${_0xf7b < 10 ? '0'+_0xf7b : _0xf7b}</th>`;
+                _0x8d1 += `</tr></thead><tbody>`;
+                _0x2b4.slice(0, 10).forEach(_0x9e2 => {
+                    _0x8d1 += `<tr><td><strong>${_0x9e2.concurso}</strong></td>`;
+                    for(let _0xf7b=1; _0xf7b<=25; _0xf7b++) {
+                        if(_0x9e2.dezenas.includes(_0xf7b)) _0x8d1 += `<td class="hm-drawn">X</td>`;
+                        else _0x8d1 += `<td class="hm-empty"></td>`;
                     }
-                    htmlHM += `</tr>`;
+                    _0x8d1 += `</tr>`;
                 });
-                htmlHM += `</tbody></table>`;
-                document.getElementById('heatmap-container').innerHTML = htmlHM;
-
+                _0x8d1 += `</tbody></table>`;
+                document.getElementById('heatmap-container').innerHTML = _0x8d1;
                 document.getElementById('historico-info').style.display = 'block';
-                statusDiv.innerHTML = `✅ Painel Preditivo Carregado!`; statusDiv.className = 'api-status loaded';
-                atualizarEstatisticas();
-
-            } catch (err) { statusDiv.innerHTML = `⚠️ Erro ao montar painel. Tente novamente.`; statusDiv.className = 'api-status error'; }
+                _0xf02.innerHTML = `✅ Painel Preditivo Carregado!`; _0xf02.className = 'api-status loaded';
+                _0x97b1();
+            } catch (_0x9e2) { _0xf02.innerHTML = `⚠️ Erro ao montar painel. Tente novamente.`; _0xf02.className = 'api-status error'; }
         }
-        window.onload = carregarDadosDoRobo;
+        window.onload = _0xef1;
     </script>
 </body>
 </html>
