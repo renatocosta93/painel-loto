@@ -59,6 +59,30 @@ jobs:
               } return null;
           }
 
+          const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23];
+          const MOLDURA = [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25];
+
+          function calcularNota(jogo, ultimoSorteio) {
+              const impares = jogo.filter(n => n % 2 !== 0).length;
+              const moldura = jogo.filter(n => MOLDURA.includes(n)).length;
+              const primos = jogo.filter(n => PRIMOS.includes(n)).length;
+              const soma = jogo.reduce((a, b) => a + b, 0);
+              let maxSeq = 1; let seqAtual = 1;
+              for(let i=1; i<jogo.length; i++) { if(jogo[i] === jogo[i-1] + 1) { seqAtual++; if(seqAtual > maxSeq) maxSeq = seqAtual; } else seqAtual = 1; }
+              let repetidas = ultimoSorteio.length > 0 ? jogo.filter(n => ultimoSorteio.includes(n)).length : 0;
+              
+              const isImpOk = (impares === 7 || impares === 8); 
+              const isMolOk = (moldura >= 9 && moldura <= 10);
+              const isPriOk = (primos >= 4 && primos <= 6); 
+              const isSeqOk = (maxSeq <= 5); 
+              const isSomaOk = (soma >= 180 && soma <= 220); 
+              const isRepOk = (repetidas >= 8 && repetidas <= 10);
+              
+              let acertos = [isImpOk, isMolOk, isPriOk, isSeqOk, isSomaOk, isRepOk];
+              let percentual = Math.round((acertos.filter(Boolean).length / acertos.length) * 100);
+              return percentual === 100;
+          }
+
           async function run() {
               let historico = [];
               if (fs.existsSync('resultados.json')) { try { historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8')); } catch(e) {} }
@@ -75,7 +99,6 @@ jobs:
               }
               fs.writeFileSync('resultados.json', JSON.stringify(novaTabela, null, 2));
 
-              // --- ASSISTENTE DE INSIGHTS ESTATÍSTICOS ---
               let stats = {}; for(let n=1; n<=25; n++) stats[n] = { history: [], freq: 0 };
               for(let i=0; i<novaTabela.length; i++) {
                   for(let n=1; n<=25; n++) { 
@@ -85,7 +108,6 @@ jobs:
                   }
               }
               
-              // Lógica de Ciclo (Viagem no tempo do mais antigo pro mais novo)
               let histAsc = [...novaTabela].reverse();
               let ciclosFechados = [];
               let setC = new Set();
@@ -104,7 +126,6 @@ jobs:
               let faltamCiclo = [];
               for(let i=1; i<=25; i++) { if(!setC.has(i)) faltamCiclo.push(i); }
 
-              // Atrasos e Quebras
               let atrasosForte = []; let quebrasForte = [];
               for(let n=1; n<=25; n++) {
                   stats[n].history.reverse(); 
@@ -139,7 +160,43 @@ jobs:
               }
               atrasosForte.sort((a,b) => b.taxa - a.taxa); quebrasForte.sort((a,b) => b.taxa - a.taxa);
 
-              // Gerador do Palpite Ideal
+              // Coletando dezenas para excluir (baseado nas quebras fortes de maior risco)
+              let dezenasExcluir = quebrasForte.map(q => q.d);
+
+              // Gerador de jogo por exclusão (evita as dezenas de quebra)
+              function gerarJogoExclusao(excluirList) {
+                  let jogo = new Set();
+                  let disponiveis = [];
+                  for(let i=1; i<=25; i++) {
+                      if(!excluirList.includes(i)) disponiveis.push(i);
+                  }
+                  disponiveis.sort(() => Math.random() - 0.5);
+                  
+                  // Completa o jogo com as dezenas restantes seguras
+                  for(let d of disponiveis) {
+                      if(jogo.size < 15) jogo.add(d);
+                  }
+                  // Se precisar de mais para fechar 15
+                  while(jogo.size < 15) {
+                      let rnd = Math.floor(Math.random() * 25) + 1;
+                      jogo.add(rnd);
+                  }
+                  return Array.from(jogo).sort((a,b) => a - b);
+              }
+
+              let jogoExclusao1 = ""; let jogoExclusao2 = "";
+              for(let tentativa=0; tentativa<5000; tentando=tentativa++) {
+                  let j1 = gerarJogoExclusao(dezenasExcluir);
+                  if(calcularNota(j1, ultimo.dezenas)) { jogoExclusao1 = j1.map(n=>n<10?'0'+n:n).join(' '); break; }
+              }
+              for(let tentativa=0; tentativa<5000; tentando=tentativa++) {
+                  let j2 = gerarJogoExclusao(dezenasExcluir);
+                  if(calcularNota(j2, ultimo.dezenas) && j2.map(n=>n<10?'0'+n:n).join(' ') !== jogoExclusao1) { jogoExclusao2 = j2.map(n=>n<10?'0'+n:n).join(' '); break; }
+              }
+              if(!jogoExclusao1) jogoExclusao1 = "01 03 05 07 09 11 13 15 17 19 21 23 24 25 02";
+              if(!jogoExclusao2) jogoExclusao2 = "02 04 06 08 10 12 14 16 18 20 22 24 25 01 03";
+
+              // Palpite Ideal normal
               let palpite = new Set();
               atrasosForte.forEach(a => palpite.add(a.d));
               faltamCiclo.forEach(c => { if(palpite.size < 15 && !quebrasForte.some(q=>q.d===c)) palpite.add(c); });
@@ -150,44 +207,22 @@ jobs:
               }
               let palpiteStr = Array.from(palpite).sort((a,b)=>a-b).map(n=>n<10?'0'+n:n).join(' ');
 
-              // Análise do Mapa de Calor (Últimos 10)
-              let hmStats = { l1:0, l2:0, l3:0, l4:0, l5:0 }; 
-              for(let i=0; i<10; i++) {
-                  if(!novaTabela[i]) break;
-                  novaTabela[i].dezenas.forEach(d => {
-                      if(d<=5) hmStats.l1++; else if(d<=10) hmStats.l2++; else if(d<=15) hmStats.l3++; else if(d<=20) hmStats.l4++; else hmStats.l5++;
-                  });
-              }
-              let linhas = [
-                  {n: 'Linha 1 (01 ao 05)', v: hmStats.l1}, {n: 'Linha 2 (06 ao 10)', v: hmStats.l2},
-                  {n: 'Linha 3 (11 ao 15)', v: hmStats.l3}, {n: 'Linha 4 (16 ao 20)', v: hmStats.l4}, {n: 'Linha 5 (21 ao 25)', v: hmStats.l5}
-              ];
-              linhas.sort((a,b) => b.v - a.v); let lForte = linhas[0]; let lFraca = linhas[4];
+              let excluirStr = dezenasExcluir.slice(0, 5).map(n=>n<10?'0'+n:n).join(', ') || "Nenhuma no momento";
 
               // Montando o texto do Assistente
-              let insight = `🤖 *Análise do Assistente Preditivo:*\n_Aqui vai a minha leitura cruzando as estatísticas dos 50 jogos:_\n\n`;
-              
+              let insight = `🤖 *Análise do Assistente Preditivo:*\n\n`;
               if(atrasosForte.length > 0) {
                   let bA = atrasosForte[0]; let dzA = bA.d < 10 ? '0'+bA.d : bA.d;
-                  insight += `• *Para Fixar:* A dezena *${dzA}* atingiu seu limite de atraso. A chance matemática dela "estourar" (retornar) hoje é de *${bA.taxa}%*.\n`;
-              } else { insight += `• *Para Fixar:* Não temos anomalias de atraso extremo hoje.\n`; }
-
-              if(faltamCiclo.length > 0) {
-                  insight += `• *Ciclo Atual:* Faltam as dezenas *${faltamCiclo.map(n=>n<10?'0'+n:n).join(', ')}*. O ciclo atual está no ${contC}º concurso.\n`;
-              } else { insight += `• *Ciclo Atual:* O ciclo fechou! Todas as dezenas estão zeradas.\n`; }
-              
-              if(ciclosFechados.length > 0) {
-                  let ultimosC = ciclosFechados.slice(-4).join(', ');
-                  insight += `• *Histórico:* Tivemos ${ciclosFechados.length} ciclos concluídos nos 50 jogos. Últimos: *${ultimosC}*.\n`;
+                  insight += `• *Para Fixar:* A dezena *${dzA}* atingiu seu limite de atraso (${bA.taxa}% de estouro).\n`;
               }
-
-              if(quebrasForte.length > 0) {
-                  let bQ = quebrasForte[0]; let dzQ = bQ.d < 10 ? '0'+bQ.d : bQ.d;
-                  insight += `• *Para Evitar:* A dezena *${dzQ}* saiu ${bQ.val} vezes seguidas. A chance dela falhar (quebrar) hoje é de *${bQ.taxa}%*.\n`;
-              } else { insight += `• *Para Evitar:* Nenhuma dezena atingiu excesso crítico consecutivo.\n`; }
-
-              insight += `• *O Mapa:* Aposte forte na *${lForte.n}*, pois essa linha está quente. A *${lFraca.n}* deu uma esfriada.\n\n`;
-              insight += `🎯 *Palpite do Assistente (15 Dezenas):*\n\`${palpiteStr}\`\n_(Gerado cruzando o ciclo, fixando atrasos e evitando quebras)_\n`;
+              if(faltamCiclo.length > 0) {
+                  insight += `• *Ciclo Atual:* Faltam as dezenas *${faltamCiclo.map(n=>n<10?'0'+n:n).join(', ')}*. (${contC}º concurso).\n`;
+              }
+              insight += `• *Regra de Exclusão (Evitar):* ${excluirStr}\n\n`;
+              insight += `🎯 *Palpite do Assistente (15 Dezenas):*\n\`${palpiteStr}\`\n\n`;
+              insight += `🛡️ *Jogos por Regra de Exclusão (Isolando Falhas):*\n`;
+              insight += `• J1: \`${jogoExclusao1}\`\n`;
+              insight += `• J2: \`${jogoExclusao2}\`\n`;
 
               // --- ENVIO TELEGRAM ---
               const token = process.env.TELEGRAM_TOKEN; const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -208,12 +243,9 @@ jobs:
 
                   let texto = `🍀 *Painel Lotofácil Atualizado*\n🔄 *Última Atualização:* ${dataAtual}\n\n` +
                               `🏆 *Último Sorteio:* ${ultimo.concurso} (${ultimo.data})\n🔢 *Dezenas:* ${dezenasFormatadas}\n` +
-                              `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n💰 *Prêmio:* ${ultimo.premio ? toBRL(ultimo.premio) : 'Apurando...'}\n\n` +
-                              `🔮 *Próximo Sorteio:* ${ultimo.proxConcurso} (${ultimo.proxData})\n⚠️ *Status:* Estimado em ${ultimo.proxPremio ? toBRL(ultimo.proxPremio) : 'A definir'}\n\n` +
+                              `👤 *Ganhadores (15 pts):* ${ganhadoresTxt}\n\n` +
                               `${insight}\n` +
-                              `✅ *Base:* 50 Jogos (${novaTabela[novaTabela.length-1].concurso} ao ${ultimo.concurso})\n` +
-                              `🔗 *Seu Painel:* https://renatocosta93.github.io/painel-loto/\n` +
-                              `🏦 *Fonte Oficial:* [Caixa Econômica](https://loterias.caixa.gov.br/Paginas/Lotofacil.aspx)`;
+                              `🔗 *Seu Painel:* https://renatocosta93.github.io/painel-loto/`;
 
                   try {
                       let resBot = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: chatId, text: texto, parse_mode: 'Markdown', disable_web_page_preview: true }) });
@@ -230,5 +262,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Novo Formato de Ciclo e Assistente" || echo "Sem mudanças"
+          git commit -m "Auto: Adicionado Regra de Exclusao e Jogos Invertidos" || echo "Sem mudanças"
           git push
