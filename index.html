@@ -137,6 +137,15 @@
                     <div id="historico-ciclos" style="margin-top: 12px; font-size: 0.85rem; color: #475569; background: #e2e8f0; padding: 10px; border-radius: 6px; font-weight: 500;"></div>
                 </div>
 
+                <!-- SEÇÃO VISUAL DE JOGOS POR REGRA DE EXCLUSÃO -->
+                <div class="stat-block" style="background: #fdf2f2; padding: 16px; border-radius: 10px; margin-top: 15px; border: 1px solid #fecaca;">
+                    <div class="stat-block-header" style="color: #991b1b;">🚫 Jogos por Regra de Exclusão (Base de Falhas)</div>
+                    <div class="stat-block-desc" style="color: #7f1d1d; margin-bottom: 12px;">Estes 2 bilhetes foram gerados invertendo a lógica: banem as dezenas de maior risco de quebra (excesso consecutivo) e validam 100% de nota estatística com o restante.</div>
+                    <div id="exclusao-panel-games" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+
                 <div class="stat-block" style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #fde68a;">
                     <div class="stat-block-header" style="color: #b45309;">🚨 Alerta de Atraso (Ausência Crítica)</div>
                     <div class="stat-block-desc" style="color: #78350f; margin-bottom: 10px;">Dezenas que atingiram o limite histórico sem sair. A <strong>Taxa de Estouro</strong> mostra a probabilidade histórica dessa dezena retornar logo no próximo concurso após bater esse limite.</div>
@@ -151,13 +160,6 @@
 
                 <h2 style="margin-top: 35px;">🗺️ Mapa de Calor (Últimos 10 Sorteios)</h2>
                 <div class="heatmap-wrapper" id="heatmap-container"></div>
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; color: #475569; border: 1px solid #e2e8f0; line-height: 1.5;">
-                    <strong style="color: var(--primary-dark);">💡 Como o Assistente analisa o Mapa:</strong> Cada linha é um concurso. As colunas são as dezenas. <br><br>
-                    • <strong>Buracos:</strong> Espaços em branco compridos indicam que uma coluna ou dezena esfriou. Excelente hora para usá-las como surpresa.<br>
-                    • <strong>Torres:</strong> Colunas preenchidas com "X" sem interrupções mostram dezenas superaquecidas. Cuidado com quebras iminentes.<br>
-                    • <strong>Linhas Fortes:</strong> Ao analisar o mapa horizontalmente, você notará facilmente se o sorteio está concentrando os prêmios mais no começo (01-10) ou no final (15-25) da cartela.
-                </div>
             </div>
         </div>
 
@@ -215,16 +217,6 @@
                 <button class="btn btn-info" onclick="enviarWhatsAppMassaImagem()">🖼️ Compartilhar Imagem</button>
             </div>
         </div>
-        
-        <div class="panel panel-full" style="text-align: justify; font-size: 15px; color: var(--text-main);">
-            <h2 style="border-bottom: none; margin-bottom: 10px; color: var(--primary-dark);">Como usar a Inteligência Preditiva?</h2>
-            <p>Além de gerar os jogos automaticamente no Item 3, você pode usar os dados avançados deste painel para montar sua própria aposta com vantagem matemática cruzando os alertas:</p>
-            <ul style="margin-left: 20px; margin-bottom: 25px; margin-top: 15px; color: var(--text-muted); font-weight: 500; line-height: 1.6;">
-                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Atraso e Ciclo:</strong> Use os números desses dois painéis como <strong style="color: #b45309;">FIXOS</strong> na sua aposta. Como eles atingiram ou passaram o limite histórico sem sair, a <i>Taxa de Estouro</i> te mostra a chance real de que eles voltem a ser sorteados imediatamente.</li>
-                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">Alerta de Quebra:</strong> <strong style="color: #1e3a8a;">EVITE</strong> esses números. Se a dezena bateu o teto histórico de vezes consecutivas, a <i>Taxa de Falha</i> te avisa o risco matemático de confiar nela de novo.</li>
-                <li style="margin-bottom: 10px;"><strong style="color: var(--text-main);">O Mapa de Calor:</strong> Não confie apenas em números frios e quentes; olhe a grade. O mapa te ajuda a identificar se há grupos inteiros (colunas ou linhas) falhando juntos.</li>
-            </ul>
-        </div>
     </div>
 
     <!-- Export Canvas -->
@@ -245,6 +237,7 @@
 
         let selecionadas = []; let ultimoSorteio = []; let dadosCarregados = false;
         let dezenasFaltantesCiclo = [];
+        let dezenasParaExcluirGlobal = [];
 
         function atualizarRelogio() {
             const agora = new Date(); document.getElementById('real-time-clock').innerText = `📅 ${agora.toLocaleDateString('pt-BR')} - ⏰ ${agora.toLocaleTimeString('pt-BR')}`;
@@ -338,12 +331,21 @@
             let jogo = new Set();
             let faltantesDisponiveis = [...dezenasFaltantesCiclo];
             faltantesDisponiveis.sort(() => Math.random() - 0.5);
-            
             let qtdFaltantesParaIncluir = Math.min(Math.floor(Math.random() * 3) + 2, faltantesDisponiveis.length);
-            for(let i = 0; i < qtdFaltantesParaIncluir; i++) {
-                jogo.add(faltantesDisponiveis[i]);
+            for(let i = 0; i < qtdFaltantesParaIncluir; i++) { jogo.add(faltantesDisponiveis[i]); }
+            while(jogo.size < size) {
+                let rnd = Math.floor(Math.random() * 25) + 1;
+                jogo.add(rnd);
             }
-            
+            return Array.from(jogo).sort((a,b) => a - b);
+        }
+
+        function gerarJogoPorExclusao(size, excluirList) {
+            let jogo = new Set();
+            let disponiveis = [];
+            for(let i=1; i<=25; i++) { if(!excluirList.includes(i)) disponiveis.push(i); }
+            disponiveis.sort(() => Math.random() - 0.5);
+            for(let d of disponiveis) { if(jogo.size < size) jogo.add(d); }
             while(jogo.size < size) {
                 let rnd = Math.floor(Math.random() * 25) + 1;
                 jogo.add(rnd);
@@ -354,13 +356,8 @@
         function gerarJogoIdeal() {
             limpar(); 
             const size = parseInt(document.getElementById('tam-jogo') ? document.getElementById('tam-jogo').value : 15);
-            let t = []; let v = false;
-            let tentativas = 0;
-            while (!v && tentativas < 5000) { 
-                t = gerarJogoEstrategico(size); 
-                v = calcularNota(t).percentual === 100; 
-                tentativas++;
-            }
+            let t = []; let v = false; let tentativas = 0;
+            while (!v && tentativas < 5000) { t = gerarJogoEstrategico(size); v = calcularNota(t).percentual === 100; tentativas++; }
             const botoes = document.querySelectorAll('.dezena');
             t.forEach(num => { selecionadas.push(num); botoes[num - 1].classList.add('selected'); });
             selecionadas.sort((a, b) => a - b); atualizarEstatisticas();
@@ -371,13 +368,8 @@
             const size = parseInt(document.getElementById('tam-jogo').value) || 15;
             let ta = document.getElementById('txt-jogos'); let res = [];
             for(let i=0; i<qtd; i++) {
-                let t = []; let v = false;
-                let tentativas = 0;
-                while (!v && tentativas < 5000) { 
-                    t = gerarJogoEstrategico(size); 
-                    v = calcularNota(t).percentual === 100; 
-                    tentativas++;
-                }
+                let t = []; let v = false; let tentativas = 0;
+                while (!v && tentativas < 5000) { t = gerarJogoEstrategico(size); v = calcularNota(t).percentual === 100; tentativas++; }
                 res.push(t.map(n => n < 10 ? '0'+n : n).join(' '));
             }
             ta.value = res.join('\n'); avaliarBolaoHTML();
@@ -418,32 +410,6 @@
             msg += `\n📊 *Média Geral:* ${Math.round(soma / jogos.length)}%`; window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
         }
         
-        async function gerarECompartilharCanvas(jogosObjArray, isBolao) {
-            const container = document.getElementById('export-canvas-container'); const listDiv = document.getElementById('export-games-list'); listDiv.innerHTML = ''; let somaNotas = 0;
-            jogosObjArray.forEach((jogo, idx) => {
-                const aval = calcularNota(jogo); somaNotas += aval.percentual;
-                const div = document.createElement('div'); div.style = 'margin-bottom:10px; padding:10px; background:#f4f7f6; border-radius:5px;';
-                div.innerHTML = `<div style="font-size:0.9rem; color:#666;">Jogo ${idx+1} (${jogo.length}dz)</div><div style="font-weight:bold; font-size:1.1rem; letter-spacing:2px; color:#444;">${jogo.map(n=>n<10?'0'+n:n).join(' ')}</div><div style="font-size:0.9rem; font-weight:bold; color: ${aval.cor};">Nota: ${aval.percentual}%</div>`;
-                listDiv.appendChild(div);
-            });
-            if (isBolao && jogosObjArray.length > 1) {
-                const media = Math.round(somaNotas / jogosObjArray.length); let corMedia = media === 100 ? 'var(--success)' : (media >= 66 ? 'var(--warning)' : 'var(--danger)');
-                const divMedia = document.createElement('div'); divMedia.style = 'margin-top:15px; text-align:center; font-size:1.1rem; font-weight:bold;';
-                divMedia.innerHTML = `Nota do Bolão: <br><span style="color:${corMedia}">${media}%</span>`; listDiv.appendChild(divMedia);
-            }
-            container.style.top = '0'; container.style.left = '0'; container.style.zIndex = '-1';
-            try {
-                const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#ffffff' }); container.style.top = '-9999px'; container.style.left = '-9999px'; 
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], 'jogos.png', { type: 'image/png' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Jogos' }); } catch (err) {} } 
-                    else { const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'jogos.png'; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url); alert("Baixado para compartilhar!"); }
-                });
-            } catch (e) { container.style.top = '-9999px'; container.style.left = '-9999px'; }
-        }
-        function enviarWhatsAppUnicoImagem() { if (selecionadas.length < 15 || selecionadas.length > 20) return alert('Selecione de 15 a 20 dezenas!'); gerarECompartilharCanvas([selecionadas], false); }
-        function enviarWhatsAppMassaImagem() { const j = lerJogosDaTextArea(); if (j.length === 0) return alert('Caixa vazia!'); gerarECompartilharCanvas(j, true); }
-
         async function carregarDadosDoRobo() {
             const statusDiv = document.getElementById('api-status');
             try {
@@ -498,9 +464,69 @@
 
                 let faltam = [];
                 for(let i=1; i<=25; i++) { if(!setC.has(i)) faltam.push({d: i, info: ''}); }
-                
                 dezenasFaltantesCiclo = faltam.map(item => item.d);
                 
+                let atrasos = []; let quebras = [];
+                for(let n=1; n<=25; n++) {
+                    let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
+                    for(let j=0; j<stats[n].history.length; j++) {
+                        if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
+                        else { aSeq++; cSeq = 0; if(aSeq > mAbs) mAbs = aSeq; }
+                    }
+                    let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
+                    let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
+                    
+                    if(curA >= mAbs - 1 && curA >= 2) {
+                        let total = 0; let hits = 0; let temp = 0;
+                        for(let j=0; j<stats[n].history.length - 1; j++) {
+                            if(!stats[n].history[j]) temp++; else temp = 0;
+                            if(temp === curA) { total++; if(stats[n].history[j+1]) hits++; }
+                        }
+                        let taxa = total > 0 ? Math.round((hits/total)*100) : 100;
+                        atrasos.push({d: n, curA: curA, mAbs: mAbs, taxa: taxa});
+                    }
+                    if(curC >= mCons - 1 && curC >= 3) {
+                        let total = 0; let fails = 0; let temp = 0;
+                        for(let j=0; j<stats[n].history.length - 1; j++) {
+                            if(stats[n].history[j]) temp++; else temp = 0;
+                            if(temp === curC) { total++; if(!stats[n].history[j+1]) fails++; }
+                        }
+                        let taxa = total > 0 ? Math.round((fails/total)*100) : 100;
+                        quebras.push({d: n, curC: curC, mCons: mCons, taxa: taxa});
+                    }
+                }
+                quebras.sort((a,b) => b.taxa - a.taxa);
+                dezenasParaExcluirGlobal = quebras.map(q => q.d);
+
+                // Gerador de Jogos por Exclusão para exibir no Painel
+                let exc1 = []; let exc2 = [];
+                for(let t=0; t<5000; t++) {
+                    let j1 = gerarJogoPorExclusao(15, dezenasParaExcluirGlobal);
+                    if(calcularNota(j1).percentual === 100) { exc1 = j1; break; }
+                }
+                for(let t=0; t<5000; t++) {
+                    let j2 = gerarJogoPorExclusao(15, dezenasParaExcluirGlobal);
+                    let j2Str = j2.map(n=>n<10?'0'+n:n).join(' ');
+                    let exc1Str = exc1.map(n=>n<10?'0'+n:n).join(' ');
+                    if(calcularNota(j2).percentual === 100 && j2Str !== exc1Str) { exc2 = j2; break; }
+                }
+
+                const excPanelDiv = document.getElementById('exclusao-panel-games');
+                if(exc1.length > 0 && exc2.length > 0) {
+                    excPanelDiv.innerHTML = `
+                        <div style="background: white; padding: 10px 14px; border-radius: 6px; border: 1px solid #fecaca; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-family: monospace; font-size: 1rem; color: #7f1d1d;">
+                            <span>J1: ${exc1.map(n=>n<10?'0'+n:n).join(' ')}</span>
+                            <span style="font-size: 0.8rem; background: #fee2e2; padding: 3px 8px; border-radius: 4px; color: #991b1b;">Nota: 100% (Sem Quebras)</span>
+                        </div>
+                        <div style="background: white; padding: 10px 14px; border-radius: 6px; border: 1px solid #fecaca; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-family: monospace; font-size: 1rem; color: #7f1d1d;">
+                            <span>J2: ${exc2.map(n=>n<10?'0'+n:n).join(' ')}</span>
+                            <span style="font-size: 0.8rem; background: #fee2e2; padding: 3px 8px; border-radius: 4px; color: #991b1b;">Nota: 100% (Sem Quebras)</span>
+                        </div>
+                    `;
+                } else {
+                    excPanelDiv.innerHTML = `<span style="font-size: 0.9rem; color: #991b1b;">Aguardando cálculo das dezenas de exclusão.</span>`;
+                }
+
                 const renderBadgesBasic = (cid, arr, css) => {
                     const c = document.getElementById(cid); c.innerHTML = '';
                     arr.forEach(item => {
@@ -515,7 +541,7 @@
                     document.getElementById('desc-ciclo').innerHTML = `Faltam estas dezenas para fechar o ciclo. O ciclo atual está no <strong>${contC}º concurso</strong>.`;
                 } else {
                     document.getElementById('badge-ciclo').innerHTML = '<span class="badge bg-cycle" style="font-size:15px;">🎉 Ciclo Fechou neste sorteio!</span>';
-                    document.getElementById('desc-ciclo').innerHTML = `Todas as 25 dezenas já saíram. Um novo ciclo começará no próximo sorteio.`;
+                    document.getElementById('desc-ciclo').innerHTML = `Todas as 25 dezenas já saíram.`;
                 }
 
                 if(ciclosFechados.length > 0) {
@@ -529,38 +555,6 @@
                 renderBadgesBasic('badge-medias', ranking.slice(8, 17).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-med');
                 renderBadgesBasic('badge-frias', ranking.slice(17, 25).map(x=>({d:x.d, info: x.freq+'x'})), 'bg-cold');
                 
-                let atrasos = []; let quebras = [];
-                for(let n=1; n<=25; n++) {
-                    let aSeq = 0, cSeq = 0, mAbs = 0, mCons = 0;
-                    for(let j=0; j<stats[n].history.length; j++) {
-                        if(stats[n].history[j]) { cSeq++; aSeq = 0; if(cSeq > mCons) mCons = cSeq; } 
-                        else { aSeq++; cSeq = 0; if(aSeq > mAbs) mAbs = aSeq; }
-                    }
-                    
-                    let curA = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(!stats[n].history[j]) curA++; else break; }
-                    let curC = 0; for(let j=stats[n].history.length-1; j>=0; j--) { if(stats[n].history[j]) curC++; else break; }
-                    
-                    if(curA >= mAbs - 1 && curA >= 2) {
-                        let total = 0; let hits = 0; let temp = 0;
-                        for(let j=0; j<stats[n].history.length - 1; j++) {
-                            if(!stats[n].history[j]) temp++; else temp = 0;
-                            if(temp === curA) { total++; if(stats[n].history[j+1]) hits++; }
-                        }
-                        let taxa = total > 0 ? Math.round((hits/total)*100) : 100;
-                        atrasos.push({d: n, curA: curA, mAbs: mAbs, taxa: taxa});
-                    }
-                    
-                    if(curC >= mCons - 1 && curC >= 3) {
-                        let total = 0; let fails = 0; let temp = 0;
-                        for(let j=0; j<stats[n].history.length - 1; j++) {
-                            if(stats[n].history[j]) temp++; else temp = 0;
-                            if(temp === curC) { total++; if(!stats[n].history[j+1]) fails++; }
-                        }
-                        let taxa = total > 0 ? Math.round((fails/total)*100) : 100;
-                        quebras.push({d: n, curC: curC, mCons: mCons, taxa: taxa});
-                    }
-                }
-                
                 const cAtrasos = document.getElementById('badge-atrasos'); cAtrasos.innerHTML = '';
                 if(atrasos.length > 0) {
                     atrasos.sort((a,b) => b.taxa - a.taxa).forEach(item => {
@@ -572,7 +566,7 @@
                 
                 const cQuebras = document.getElementById('badge-quebras'); cQuebras.innerHTML = '';
                 if(quebras.length > 0) {
-                    quebras.sort((a,b) => b.taxa - a.taxa).forEach(item => {
+                    quebras.slice(0, 8).forEach(item => {
                         let s = document.createElement('div'); s.className = 'badge-pred';
                         s.innerHTML = `<div class="badge-pred-num">${item.d < 10 ? '0'+item.d : item.d}</div><div class="badge-pred-info"><span>Atual: ${item.curC} | Máx: ${item.mCons}</span><span class="text-falha">Falha: ${item.taxa}%</span></div>`;
                         cQuebras.appendChild(s);
