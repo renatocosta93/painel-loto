@@ -87,7 +87,17 @@ jobs:
               let historico = [];
               if (fs.existsSync('resultados.json')) { try { historico = JSON.parse(fs.readFileSync('resultados.json', 'utf8')); } catch(e) {} }
 
-              let ultimo = await fetchLoto(''); if (!ultimo) process.exit(1);
+              let ultimo = await fetchLoto(''); 
+              if (!ultimo) {
+                  console.log("⚠️️ Alerta: APIs oficiais instáveis. Utilizando último registro em cache.");
+                  if (historico.length > 0) {
+                      ultimo = historico[0];
+                  } else {
+                      console.log("❌ Erro: Sem cache disponível.");
+                      process.exit(0); // Encerra sem quebrar a action
+                  }
+              }
+
               let mapHist = {}; for (let j of historico) if (j && j.concurso) mapHist[j.concurso] = j;
 
               let novaTabela = [];
@@ -255,5 +265,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Robo Lotofacil"
           git add resultados.json telegram_msg_id.txt || true
-          git commit -m "Auto: Correcao do loop de exclusao e publicacao" || echo "Sem mudanças"
+          git commit -m "Auto: Tratamento de falhas de API e robustez do robô" || echo "Sem mudanças"
           git push
